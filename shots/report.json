@@ -1,0 +1,185 @@
+{
+ "results": [
+  {
+   "name": "boot: __TEST present",
+   "pass": true,
+   "info": ""
+  },
+  {
+   "name": "boot: title state",
+   "pass": true,
+   "info": "title"
+  },
+  {
+   "name": "render: title backdrop draws pixels",
+   "pass": true,
+   "info": "lit=78461"
+  },
+  {
+   "name": "start: state play",
+   "pass": true,
+   "info": ""
+  },
+  {
+   "name": "start: player on hub floor (grounded soon)",
+   "pass": true,
+   "info": "vy=0.63 y=127.2"
+  },
+  {
+   "name": "start: world material below player is solid",
+   "pass": true,
+   "info": "m=10"
+  },
+  {
+   "name": "lighting: camp area brighter than distant sky corner",
+   "pass": true,
+   "info": "near=177354 far=58779"
+  },
+  {
+   "name": "move: run right",
+   "pass": true,
+   "info": "Δx=18.9"
+  },
+  {
+   "name": "jump: vertical velocity upward",
+   "pass": true,
+   "info": "vy=-1.25"
+  },
+  {
+   "name": "cast: projectiles spawn",
+   "pass": true,
+   "info": "mana 86→66"
+  },
+  {
+   "name": "cast: wand cycles (cd/recharge tracked)",
+   "pass": true,
+   "info": ""
+  },
+  {
+   "name": "physics: oil floats on water (density layering)",
+   "pass": true,
+   "info": "oilY=200 waterTopY=203"
+  },
+  {
+   "name": "physics: lava+water → rock & steam",
+   "pass": true,
+   "info": "rock(interior) 0→21, steam=18"
+  },
+  {
+   "name": "physics: fire spreads & consumes wood",
+   "pass": true,
+   "info": "wood 28→0 peakFire=20 spreadRight=11"
+  },
+  {
+   "name": "physics: acid dissolves rock",
+   "pass": true,
+   "info": "rock 25→24"
+  },
+  {
+   "name": "physics: powder falls & settles in liquid",
+   "pass": true,
+   "info": "sandAtBottom=12"
+  },
+  {
+   "name": "physics: explosion carves solid rock",
+   "pass": true,
+   "info": "rock 841→687"
+  },
+  {
+   "name": "combat: player wand kills enemies",
+   "pass": true,
+   "info": "kills=1"
+  },
+  {
+   "name": "ai: melee enemy closes distance",
+   "pass": true,
+   "info": "dist 10.0→0.1 hp=40"
+  },
+  {
+   "name": "death: drowning reported",
+   "pass": true,
+   "info": "reason=溺毙于水中"
+  },
+  {
+   "name": "death: lava reported",
+   "pass": true,
+   "info": "reason=浸没在熔岩里"
+  },
+  {
+   "name": "death: fall damage or fall death",
+   "pass": true,
+   "info": "hp=83.1 maxVy=6.00 state=play reason="
+  },
+  {
+   "name": "death: crush/burial reported",
+   "pass": true,
+   "info": "reason=塌落的砂土将你活埋，压成齑粉。"
+  },
+  {
+   "name": "ui: bench panel opens",
+   "pass": true,
+   "info": "state=panel"
+  },
+  {
+   "name": "ui: click-swap reorders wand",
+   "pass": true,
+   "info": "ember,arc,split,ember → split,ember,ember"
+  },
+  {
+   "name": "ui: bench closes → play",
+   "pass": true,
+   "info": ""
+  },
+  {
+   "name": "ui: perk altar offers 3 perks",
+   "pass": true,
+   "info": ""
+  },
+  {
+   "name": "ui: perk applied & panel closed",
+   "pass": true,
+   "info": ""
+  },
+  {
+   "name": "soak: 5520 sim frames without crash",
+   "pass": true,
+   "info": "errors=0"
+  },
+  {
+   "name": "soak: descent + perf",
+   "pass": true,
+   "info": "frames=3360 wall=13.7s fps-jsdom=245 simMs=0"
+  },
+  {
+   "name": "gen: five biomes defined",
+   "pass": true,
+   "info": "矿坑→煤坑→菌窟→冰渊→熔火之心"
+  },
+  {
+   "name": "boss: present in magma heart",
+   "pass": true,
+   "info": "{\"hp\":460,\"x\":235.81,\"y\":2167.617278110216,\"dead\":false}"
+  },
+  {
+   "name": "boss: active fight ticks (survives to be killable)",
+   "pass": true,
+   "info": ""
+  },
+  {
+   "name": "win: state win after boss dies",
+   "pass": true,
+   "info": "state=win bossDead=true"
+  },
+  {
+   "name": "ui: death card shows cause text",
+   "pass": true,
+   "info": "死因：毒雾侵蚀 — 毒雾与菌毒在你的血脉里蔓延。"
+  },
+  {
+   "name": "ui: run stats filled",
+   "pass": true,
+   "info": "本次远征：存活 0分0秒 · 最深 0m · 击杀 0 · 敛财 0 金"
+  }
+ ],
+ "errors": []
+}
