@@ -1,0 +1,61 @@
+SOURCE: https://noita.wiki.gg/wiki/Biomes
+
+--- Biomes - The Noita Wiki | https://noita.wiki.gg/wiki/Biomes
+wiki.gg logo
+
+## Navigation menu
+
+### Namespaces
+
+### Views
+
+### Navigation
+
+### Content
+
+### Mods
+
+### Tools
+
+### In other languages
+
+# Biomes
+
+Biomes are distinct regions within Noita, each containing a specific set of creatures, objects, and terrain features of varying rarity. Many biomes are subject to an occasional randomized Biome modifier, and some have a default. These modifiers may add unusual effects or features to the biome such as projectile deceleration or flooding. [...] Basic gameplay leads you down through a stack of 8 biomes called the Main Path, each separated by a Holy Mountain. Many biomes branch off to other "side biomes" to explore which may provide unique benefits such as an abundance of valuable items or more powerful wands.
+
+## Contents
+
+## Main Path
+
+Main path biomes [...] |  |  |  |  |  |  |  |  |  |  |
+ ---  ---  ---  ---  --- |
+|  | | | | Repeating ↑ Sky "The Work (Sky)") Biomes |  | | | | |
+| Moon |
+| Cloudscape |  | | | The Work (Sky) "The Work (Sky)") |  | | Cloudscape |  | The Gold |
+|  | | | | | | | | | ??? |
+| Lake | Snowy Wasteland | | | Giant Tree; Forest | | Desert | Desert; Pyramid | Desert; Celestial Scale |  |
+| Frozen Vault | Snowy Chasm | Ancient Laboratory | Collapsed Mines; Mines | Lava Lake; Orb Room | Desert Chasm | Sandcave | Desert Chasm |
+
+--- Biome Modifiers - The Noita Wiki | https://noita.wiki.gg/wiki/Biome_Modifiers
+Some biomes will generate with a modifier by default, such as the Fungal Caverns which usually has Humid and the Desert which always has Hot. Any of the main biomes can randomly get one of the modifiers listed below, which may override the default modifier if that biome has one.
+
+Each of the main biomes has a 10% chance to be generated with a modifier, with two exceptions: [...] Biome Modifiers are applied to some of the generated biomes randomly according to the world seed. These modifiers are presented with a flavor text message indicating which one is active after the "Entered <Biome>" notification message, accompanied by a decorative border for the message matching the biome modifier. For example, the Humid modifier's message is decorated with water droplets. Note that biomes that do not announce themselves (for example, the lava lake) may still have preset [...] | Biome modifier - roomy.gif Roomy / Perforated This place feels roomy  Biomes generates with a greater amount of open space, and tentacle/worm holes appear through the terrain.  Small and medium-size worms become common, and giant worms may sometimes spawn.   ---   Locations : Cannot appear in The Vault, Frozen Vault, Temple of the Art, or Snowy Depths. | 0.75 | 7.72 % |
+
+--- Mod:Alternate Biomes - The Noita Wiki | https://noita.wiki.gg/wiki/Mod:Alternate_Biomes
+This mod adds a number of vanilla-inspired biomes that occasionally replace normal biomes at the start of a new run. Features 14 new biomes 33
+
+--- Documentation: Biome - The Noita Wiki | https://noita.wiki.gg/wiki/Documentation:_Biome
+| sunset\_alpha\_target | float | 1 |  | affects sunset gradient amount |
+| bitmap\_filename | std::string |  |  | loads the chunk from this bitmap, the bitmap should be 512x512 |
+| wang\_template\_file | std::string |  |  | uses this file to create a herringbone wang map |
+| wang\_map\_width | int | 256 | [1, 512] | the size of the wang map |
+| wang\_map\_height | int | 256 | [1, 512] | the size of the wang map |
+| lua\_script | std::string |  |  | default is data/scripts/biomes/NAME.lua | [...] | pixel\_scene | bool | false |  | for 'pixel scene' biomes, this forces the loading before hand |
+| static\_tile | bool | false |  | if 1, directly blits wang\_template\_file without wang randomization, kind of like a pixel scene but at the wang tile resolution |
+| static\_tile\_bg\_mask | std::string |  |  | if set, and static tile is 1, the background\_image will use a special shader and this mask to calculate visiblity. should be same size and resolution as 'wang\_template\_file' | [...] | background\_edge\_top | std::string |  |  | if not empty, will use this image as the top edge |
+| background\_edge\_bottom | std::string |  |  | if not empty, will use this image as the bottom edge |
+| background\_edge\_priority | int | 0 |  | if both biomes have edges defined, will use the one with higher priority (if priority is same, will compare (>) background\_images) |
+
+--- Water (Biome) - The Noita Wiki | https://noita.wiki.gg/wiki/Water_(Biome)
+The Water biome is simply a very large roughly square room filled only with Water. main game, the biome is hidden outside of The Tower,
+

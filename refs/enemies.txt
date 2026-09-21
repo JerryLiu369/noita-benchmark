@@ -1,0 +1,333 @@
+SOURCE: https://noita.wiki.gg/wiki/Enemies
+
+--- Critical On Bloody Enemies - The Noita Wiki | https://noita.wiki.gg/wiki/Critical_On_Bloody_Enemies
+Critical on Bloody Enemies is a projectile modifier that causes hits landed on enemies with Bloody Bloody status effect to gain +100% critical
+
+--- Enemies by biome - The Noita Wiki | https://noita.wiki.gg/wiki/Enemies_by_biome
+Murkku
+Lepakko
+Suurlepakko
+Liekkiö
+Plasmakukka
+Puska
+Amppari
+Pikkutulikärpänen
+Suurtulikärpänen
+Huhtasieni
+Laahustussieni
+Nuijamalikka
+Elvytyskristalli
+Haamukivi
+Hohtonaamio
+Kallokärpänen
+Kallorotta
+Kirottu kristalli
+Kiukkukalma
+Spiraalikalma
+Sylkyri
+Taivaskristalli
+Verikristalli
+Hiidenkivi
+Patsas
+Kilpihiisi
+Korjauslennokki
+Parantajahiisi
+Raukka
+Jäätiö
+Sähkiö
+Eldari
+Epäalkemisti
+Haavoittajamestari
+Hahmonvaihtaja
+Hohtava hyypiö
+Hyypiö
+Kadotettu alkemisti
+Kohdennusmestari
+Maadoittajamestari [...] Plasmakukka
+Susi
+Suurtulikärpänen
+Puska
+Amppari
+Hiidenkivi
+Patsas
+Heikkohurtta
+Hurtta
+Olematon
+Viha-Aave
+Utu-Aave
+Kirottu kristalli
+Sylkyri
+Elvytyskristalli
+Spiraalikalma
+Kiukkukalma
+Kummitus
+Taivaskristalli
+Neva-Aave
+Hohtonaamio
+Taikasauva
+Kaamo-Aave
+Kalmamato
+Verikristalli
+Houre
+Kallokärpänen
+Kallorotta
+Haamukivi
+Pahan muisto
+Henkevä potu
+Valhe
+Jalkamatkatavara
+Matkija
+Heikko happonuljaska
+Happonuljaska
+Kiukkumöykky
+Heikko äitinuljaska
+Mulkkio
+Varjokupla
+Möykky
+Pienkätyri
+Heikko limanuljaska [...] Peitsivartija
+Robottikyttä
+Salamurhaajarobotti
+Tuonelankone
+Turvalennokki
+Äitinuljaska
+Happonuljaska
+Helvetin sylkijä
+Helvetinkatse
+Jättikonna
+Kiukkumöykky
+Konna
+Limanuljaska
+Mulkkio
+Pikkuturso
+Toukka
+Turso
+Hämis
+Susi
+Hurtta
+Mätänevä ruumis
+
+--- Mod:New Enemies And Bosses - The Noita Wiki | https://noita.wiki.gg/wiki/Mod:New_Enemies_And_Bosses
+wiki.gg logo
+
+## Navigation menu
+
+### Namespaces
+
+### Views
+
+### Navigation
+
+### Content
+
+### Mods
+
+### Tools
+
+# Mod:New Enemies And Bosses
+
+NE Thumbnail 300.png
+NE GUI.png
+NE Settings Updated.png
+
+The New Enemies And Bosses mod adds over 300 fascinating creatures to the game. (Hence it makes the game a bit harder, too!)
+
+Download from the Steam Workshop.
+
+Features: [...] ## Fungus
+
+Tiny Sporeling
+Medium Sporeling
+Large Sporeling
+Trip Mage
+Spore Fungus
+Swamp Fungus
+Fungal Abomination
+
+## Rock Spirits
+
+Giant Summoner
+Energy Orb Giant
+Ancient Giant
+Thou
+
+## Ghosts
+
+Ephemeris
+Acid Lurker
+Blood Demon
+Water Phantom
+Bewitched Tome
+Lost Soul
+Giant Lost Soul
+Ghostling
+Igu
+Ghuu
+Nova
+Creeper
+Frozen Soul
+Sentinel
+Long Ghost
+Vollux
+Manticore
+Hurpa
+Phan
+Phantom Trapper
+Restless Phantom
+Sneaker
+Spooky Ghost
+Void Skull
+
+## Slimes [...] Features:
+
+The pages linked below contain more information and images. You can also look at the (outdated) GIFs in this modworkshop gallery to see all of them compiled on one page.
+
+## Contents
+
+## Creatures
+
+Eyebat
+Skeleton
+Monkey
+Stone Crab
+Crawler
+Knight
+Stalker
+Enigma
+Fire Crawler
+Nautilus
+Ground Terror
+Alchaos
+Suuka
+Podupine
+Gasnacle
+Ooion
+Cyclops Bat
+Eyeling
+Singularitor
+Quin
+Imp
+Giant Zombie
+Manus
+Scorpio
+Chameleon
+Mummy
+
+## Fungus
+
+--- Creatures - The Noita Wiki | https://noita.wiki.gg/wiki/Creatures
+## Resources
+
+ Enemies by biome
+ Factions
+ Enemy Information Table [...] These monsters generally have a faction all to themselves or share a faction with only one or two other closely-related enemies at most.
+
+Murkku
+
+Lepakko
+
+Suurlepakko
+
+Large Bat
+
+Plasmakukka
+
+Plasma Flower
+
+Puska
+
+Amppari
+
+Pikkutulikärpänen
+
+Lesser firefly
+
+Suurtulikärpänen
+
+Greater firefly
+
+Huhtasieni
+
+Pollen Morel
+
+Laahustussieni
+
+Shuffling Fungus
+
+Myrkkynääpikkä
+
+Funeral Bell
+
+Nuijamalikka
+
+Hiidenkivi
+
+Rock Giant
+
+Lohkare
+
+Rock Spirit
+
+Patsas
+
+Hahmonvaihtaja
+
+Märkiäinen
+
+Skoude
+
+Skoude
+
+Cop [...] Kasvoton Lukki
+
+Kasvoton Lukki
+
+Faceless spider
+
+## Hiisi
+
+The Hiisi are a diverse type of humanoid enemies that reside within the mountain, and have a variety of different weapons and machinery at their disposal.
+
+Häivehiisi
+
+Häivehiisi
+
+Stealth Hiisi
+
+Kilpihiisi
+
+Kilpihiisi
+
+Shield Hiisi
+
+Parantajahiisi
+
+Parantajahiisi
+
+Hiisi Healer
+
+Raukka
+
+Raukka
+
+Coward
+
+Haulikkohiisi
+
+Haulikkohiisi
+
+Shotgun Hiisi
+
+Heikko haulikkohiisi
+
+Heikko haulikkohiisi
+
+Weak Shotgun Hiisi
+
+Hornahiisi
+
+Hornahiisi
+
+--- Enemy Immunities - The Noita Wiki | https://noita.wiki.gg/wiki/Enemy_Immunities
+Some enemies in Noita have built-in protections to certain kinds of damage or status effects. This is usually separate to their damage
+

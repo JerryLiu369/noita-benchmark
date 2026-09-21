@@ -1,0 +1,129 @@
+--- Why noita pixel art is a real simulation | https://www.facebook.com/KehlBayern/posts/noita-might-be-one-of-the-best-examples-of-a-game-whose-pixel-art-isnt-merely-an/1501396898699372
+Noita might be one of the best examples of a game whose pixel art isn't merely an aesthetic choice. Every pixel participates in the simulation.Read more
+
+--- Nolla Games: Making of Noita – The Pixel-Based Physics Roguelite - Games Now! lecture series | https://www.youtube.com/watch?v=Mr3E_voEG8Y
+of rendering the pixels in just oh my god I'm just gonna die here yeah this is a rope light so what's the keys so you you go around in this maze of space and you shoot the enemies and this is sort of the main purpose of this was also to kind of like test if like there are various different art styles that could be done with pixel art that allow sort of a more interesting look with less pixels but it was also like evident here as you can see in order to do like shooting in low resolution you [...] finally and that was kind of okay but it was still like not quite I feel like taking advantage of the the thing so then back in 2012 I thought about okay I will give this another go and I asked Audrey to come and help me to do some pixel art so this is when me and arvy got together and we started tried to make this game which is closer to what what noise to sort of ended up being so this is a rope like permitted game and you play us this wizard character and you can cast spells and I don't know [...] question about we already talked a bit about the physics but you have this some of the part in the world who did this that it's not affected by the physic like the stuff that's kind of attached to your balls so to say so I noticed sometimes you get stuck in this one pixel style things is there some technical reason why you couldn't switch between these because that would sometimes feel like if you have like one pixel it would be good to kind of change it to actually fall down or something like
+
+--- Noita Gameplay - Explaining what every pixel is simulated means | https://www.youtube.com/watch?v=0We8a8AFPp8
+Noita is a magical action roguelite set in a world where every pixel is physically simulated. Fight, explore, melt, burn, freeze and evaporate your way through the procedurally generated world using spells you've created yourself. 
+
+Website: 
+Twitter: 
+Tumblr:  
+Press kit: [...] I have no devil Upper Keys turned on so if I die that's gonna be the end of it I will try to do my best so you can see here okay it's gonna go well I think that's Janice filming Candice is gonna explode and it's gonna murder those ha ha ha so you can see here on the top left here it explains what the material is that I'm mousing over so you can see this is like freezing vapor so what happened here is that gas that rose from there is what actually murdered those guys who came to kill me so you [...] so it's just tasty they're very low HP which I have 9 now left that's perfectly fine so once you get far enough you get into this place and this is sort of a place for you to rest a bit so you get your health back up and you get your ammo back up and you get used to shop and you get to buy things which I can't afford right now because I've been playing kind of poorly and then you get one of these perks which I have to here and most importantly once you get in here you get to modify the spells
+
+--- Noita pixel simulation. Any tip about how is it done? | https://www.reddit.com/r/gamedev/comments/d93op6/noita_pixel_simulation_any_tip_about_how_is_it
+Hi, I'm playing Noita and I think it is awesome how they simulate every pixel on screen. Any tip about how they have managed to accomplish this? https://store
+
+--- How To Make Pixel Art | Noita | https://www.youtube.com/watch?v=T-wuFN69i0A
+In this video we are going to learn how to do pixel art in the dev world.
+
+--- GameMaker Community | https://forum.gamemaker.io/index.php?threads%2Fnoita-and-his-pixels.80117%2F=
+Posts
+:   11.2K
+
+H
+
+Portfolio - General FOR HIRE 3D Character Artist Stylized Characters & Game Art
+
+ holami4262
+
+### Off Topic
+
+A place for things not strictly related to GameMaker. Please read the forum guidelines before posting.
+
+Threads
+:   2.3K
+
+Posts
+:   35.2K
+
+Threads
+:   2.3K
+
+Posts
+:   35.2K
+
+MeBoingus
+
+Forum Game The Rhyming Game (Continue the rhyme from person above you)")
+
+ MeBoingus
+
+## GameMaker
+
+### Programming [...] kburkhart84
+
+### Forum statistics
+
+Threads
+:   107,341
+
+Posts
+:   693,230
+
+Members
+:   34,391
+
+Latest member
+:   GlazzMatt
+
+### Share this page
+
+Facebook   X   Bluesky   LinkedIn   Reddit   Pinterest   Tumblr   WhatsApp   Email   Share   Link
+
+ Forum Home [...] Replies
+:   0
+
+Views
+:   39
+
+Keler
+
+Keler
+
+Leftovers
+
+"Gambling-like" mini game, Programming help?
+
+ Leftovers
+ Programming
+
+Replies
+:   2
+
+Views
+:   86
+
+Alexx
+
+Alexx
+
+View more…
+
+## Community
+
+### Announcements
+
+All official community announcements and news posts.
+
+Threads
+:   248
+
+Posts
+:   13.2K
+
+Threads
+:   248
+
+Posts
+:   13.2K
+
+gnysek
+
+OFFICIAL Marketplace Future and the Prefab Library
+
+ gnysek
+
+### Community Chat
+

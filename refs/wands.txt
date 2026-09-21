@@ -1,0 +1,59 @@
+SOURCE: https://noita.wiki.gg/wiki/Wands
+
+--- Wands - The Noita Wiki | https://noita.wiki.gg/wiki/Wands
+wiki.gg logo
+
+## Navigation menu
+
+### Namespaces
+
+### Views
+
+### Navigation
+
+### Content
+
+### Mods
+
+### Tools
+
+### In other languages
+
+# Wands
+
+Wands allow you to cast spells in Noita, and are your primary means of interacting with the world. You may hold up to four wands, each with their own set of spells. [...] ## Contents
+
+## Starting Wands
+
+When a new game is started in Noita, you are usually given two wands: One for regular combat, and one for utility spells, usually for digging. The wands contain a random assortment of spells by default, picked from a small pool. Stats on the wands are also picked at random, with the utility wand usually having less Mana Recharge than the regular combat wand, in exchange for faster reloading times. [...] ## Wand Tiers
+
+Wands have a level/tier number between 1 and 6, and in rare cases it can be 10. Higher wand tiers generally have higher stats, and a larger spell pool from which to pick spells to generate with.
+
+Detailed info about Wand Tiers can be found on this page: Wand and Spell Tiers.
+
+Notes:
+
+## Wand Generation Procedure
+
+## Trivia
+
+Damage Electricity dmg-large.png
+
+## See Also
+
+--- Guide: Wand Mechanics - The Noita Wiki | https://noita.wiki.gg/wiki/Guide:_Wand_Mechanics
+This wand has a few different ways its spell sequence can turn up. The wand itself will take 1–3 casts between each recharge. On the first cast, it has a chance of shooting a normal Spark Bolt, a burning Spark Bolt, two normal Spark Bolts, or two burning Spark Bolts. Shuffle wands are harder to work with, but they generally offer higher stats compared to non-shuffle wands. The golden wands frequently found in the Mines can be used to make some fast firing wands, for example. [...] Since this wand has frontloaded modifiers, it casts slightly differently than previous wands. The aim of this wand is to shoot something which will deal damage over a large area wherever it hits--a 'bomb' of sorts. This wand first fires a plain Magic Arrow With Trigger that, when hitting a target, bursts into 3 separate Bubble Sparks with a Fire Trail (this is different from a Burning Trail) pouring from them. The Triple Scatter modifier adds +10 degree to each Bubble (which on their own have a [...] ## In Summary
+
+Wand building is one of the best aspects of Noita, but can also be one of the most confusing until you figure out the system behind it. It is our hope that with this guide, every player will know how to make the most of the spells and wands they find in the game and utilize them to make some crazy god-wand that will carry them to the endgame.
+
+## See Also
+
+--- Lake - The Noita Wiki | https://noita.wiki.gg/wiki/Lake
+# Lake. You can find a Lake Island in the center, and an Abandoned Hut where the lake meets the snowy wasteland. On the eastern edge of the Lake there's a small hut, similar to those spawned with Kammi, with a depiction of an Emerald Tablet on the background wall. * Throwing an Emerald Tablet into the hut will open a green portal, leading to a steel chamber within the lake below. Inside the chamber is a Kadotettu alkemisti, a unique Experimental Wand "Experimental Wands") with stats comparable to wands found in the Fungal Caverns or the Coal Pits, and a collection of cosmetic Glimmer spells, unlocking them for any future runs. * Similarly, throwing a Stone Tablet into the hut will open a green portal to a second, deeper steel chamber. * The portal from the hut to either chamber only lasts 10 seconds, so be prepared to jump in immediately. However, the portals from the chambers back to the hut last indefinitely. * You cannot get the spells in the chambers by digging or teleporting into them without summoning the portal. The spells only spawn when the portal to the chamber spawns. ### Lake Island. ### Lake. * When Syväolento is defeated, the entire lake along with all water in the entire world will turn into Smoke (therefore, it is recommended to not defeat this boss until you have immunity to Fire (Fire Immunity/Oil Blood and ideally Toxic Sludge (Toxic Immunity/Gas Blood). + SPOILER: Therefore, you cannot make the portals appear using the Emerald or Stone Tablets, making the experimental wands and glimmer spells inside unavailable. The steel chambers containing the wands/spells are also missing. * Wands can spawn in the lake, seemingly only in the shallow parts near the island. - SPOILER: Because this material destroys metallic solids, it will destroy the chambers containing the experimental wands. This will cause all of the spells and any dropped wands to fall far into the lake into unloaded chunks, causing them to disappear entirely. + The SPOILER: deeper steel chamber no longer spawns a Spell Refresh. * Nov 5 2019: Added the SPOILER: ability to fill the island cave with blood to spawn a portal to the Desert.
+
+--- Nemesis - The Noita Wiki | https://noita.wiki.gg/wiki/Mod:New_Enemies_And_Bosses/Nemesis
+## Navigation menu. ### Namespaces. ### Views. ### Navigation. ### Content. ### Mods. ### Tools. * Printable version; "Printable version of this page [p]"). # Nemesis. < Mod:New Enemies And Bosses. Jump to navigation Jump to search. The Nemesis uses Custom made Player AI. It moves around and plays just like the player. It has wands which gets stronger based on how deep in the caves the nemesis spawns. The Nemesis can steal gold, perks, and items. It can also kick corpses and physics objects around. One of the AI movement systems this enemy uses was made by Evaisa (It is A-star type pathfinding algorithm). The nemesis provides a very good PvP fight experience. (It is a miracle that this character works as well as it does). Depending on depth and biome it spawns in, this enemy gets different perks, wands and health. The visuals of the wands it wields are unique and different than the main player's. Gets lukki legs if it spawns in the jungle. Cookies help us deliver our services. By using our services, you agree to our use of cookies.
+
+--- Pheromone - The Noita Wiki | https://noita.wiki.gg/wiki/Pheromone
+### Navigation. # Pheromone. **Pheromone** is a bright red sparkling magical liquid that stains creatures with Charmed, making them switch allegiance to your side (faction). * 2 Charmed wands and Pheromone ghosts. * It's hard, but not impossible, to spray enough Pheromone on a flying creature in order to trigger the charm. + SPOILER: Dropping **empty** wands (no spells or Always Casts) into a pool of Pheromone will cause them to be "sold", yielding a large Gold nugget with a value of at least 200. ## Charmed wands and Pheromone ghosts. Pheromone that is covering wands has a natural propensity to form Taikasauva (sometimes referred to as "charmed wands") which are naturally friendly to you. This effect can only be observed if a pool of pheromone is covering the hitbox of 1 or more wands, so it needs to be around 5-10 pixels in depth. A wand may need to be thrown multiple times into a pool of pheromone to trigger the effect. The wand smuggling glitch may be used to dip the wand in pheromone and more reliably trigger the effect. These creatures are largely unnoticeable, but will quickly pick up any dropped wands which contain spells and attack any nearby enemies. If the wand deposited in the pool of Pheromone contains usable spells, a nearby ghost will pick it up and roam around with it. As soon as the wand exits the pool of pheromone, ghosts will stop spawning. Like all Taikasauva, these creatures will drop 10 when killed (20 if the death was an accident), so ghosts can repeatedly be summoned by tossing wands into the pool and then killed with an Emerald Tablet or other physics object. In older versions of Noita, it was possible to cause large swarms of ghosts by dropping empty wands to gain large amounts of gold by killing them, but this is no longer possible and has been replaced with the "wand selling" mechanic described above. Many wandless ghosts being spawned from Holy Mountain shop wands by Pheromone, made-visible with Enemy Radar. * Nov 5 2019: The ability to SPOILER: pheromone wands to spawn a Charmed Taikasauva was added.
+

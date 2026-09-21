@@ -1,0 +1,19 @@
+SOURCE: https://noita.wiki.gg/wiki/Spells
+
+--- Spells - The Noita Wiki | https://noita.wiki.gg/wiki/Spells
+# Spells
+
+Spells, and choosing how to use them, is a core part of Noita. You can obtain new spells in a few ways, such as by collecting them off naturally generated wands, by opening chests, by buying them from shops "Shop (disambiguation)"), or by finding them in special locations. There are many different "types" of spells, but most either add a projectile to the current wand's shot, or modify something about the current shot state. [...] Spells that can hit multiple targets multiple times.  Typically a projectile ceases to be when it hits and damages an enemy, but some projectiles have (or can be modified to have) the property of "Piercing" - and will keep on repeatedly hitting and doing damage to an enemy while in contact with it. Projectiles with a Trigger or Timer payload will also release that payload repeatedly for each time they hit - at no extra mana cost. | [...] Non-shuffle wands will always cast the spells sequentially in a left-to-right order, thus enabling complex yet predictable combinations. Modifier type spells will generally only affect the current shot state in a wand, though some will affect global data like recharge time. Wands with an "Always Cast" spell will cast that spell along with any other spells every time the wand is cast. To learn more basics about how spells and modifiers can be used, see the Guide To Wand Mechanics.
+
+--- Spells To Power - The Noita Wiki | https://noita.wiki.gg/wiki/Spells_To_Power
+Spells to Power is a projectile modifier spell. A group of spells that modify damage output by absorbing other things. Spells to
+
+--- Spells To Death Crosses - The Noita Wiki | https://noita.wiki.gg/wiki/Spells_To_Death_Crosses
+Spells to Death Crosses is a utility Spell that transforms all active projectiles into a random Death Cross.
+
+--- Expert Guide: High Damage Wands with Spells to Power - The Noita Wiki | https://noita.wiki.gg/wiki/Expert_Guide:_High_Damage_Wands_with_Spells_to_Power
+Spells To Power (StP) is a major way to increase damage. Every projectile with StP copies damage from every projectile without StP, for each stack of StP on the projectile. So, if you have 100 projectiles with 10 StP applied to each, and 10 projectiles for feed with base damage derived from 1 BtP already in the world, that's 24000 (BtP) x 10 (number of feed projectiles) x 10 (number of StP per projectile) x 100 (number of projectiles) = 240 Million damage. In this way, our use of StP has [...] Spell Duplication can copy any spell, which means it can be used to copy the crits and the BtP at the same time while only using 1 chain. The usual setups use the following spells: Tau, Alpha/Gamma/Zeta, divides and the Spell Duplication itself of course. [...] A wand that also includes everything discussed so far at this point is slightly more complicated while still maintaining either Spells/Cast 1 or Spells/Cast 26 (from a Multitudes). Utilizing Spells To Power requires either a trigger or a separate cast, but using a trigger would be a massive loss in damage as we'd need to create 2 set of projectiles, the feed and the damage dealers, which is a waste of slots. The only possibility left is to have a separate cast, at which point having the correct
+
+--- Copy Random Spell - The Noita Wiki | https://noita.wiki.gg/wiki/Copy_Random_Spell
+The Copy Random set of spells are special spells that copy and cast randomly chosen spells on your wand (regardless of their type).
+

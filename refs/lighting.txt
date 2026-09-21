@@ -1,0 +1,20 @@
+--- Dark Cave - The Noita Wiki | https://noita.wiki.gg/wiki/Dark_Cave
+The Black Hole spell lights up a small area while it travels. Projectiles with the Light modifier can briefly light up the area, as well as the
+
+--- Dark Cave - Noita Wiki - Fandom | https://noita.fandom.com/wiki/Dark_Cave
+Projectiles with the Light modifier will illuminate a small area around themselves. Long-lasting or permanent spells such as Circle of Stillness or Rock can be
+
+--- Dark Cave in a Lit Environment - Render Pipelines | https://discussions.unity.com/t/dark-cave-in-a-lit-environment/876191
+Hello everyone. I building an environment that has a cave which I would like it to be completely dark; And for this i am using the HDRP pipe
+
+--- Is the overtuned cave "darkness" fog a bug or intentional? | https://www.vintagestory.at/forums/topic/13773-is-the-overtuned-cave-darkness-fog-a-bug-or-intentional
+The weird fog you can sometimes get in caves seem to come from when the surface is foggy in some areas. I remember going into a big deep ruin (
+
+--- Why does the area all the way to the left not light up? : r/noita | https://www.reddit.com/r/noita/comments/kj8oeg/why_does_the_area_all_the_way_to_the_left_not
+Do they really expect me in the very first level to get a lantern wand to keep going left? You can see the roots down there so I think it's under the tree
+
+--- How to create darker cave lighting in games? | https://www.facebook.com/groups/gamedev/posts/25905894832365805
+How do you guys use lighting to make it look darker in caves?
+
+I have been working on lighting for my game Veil of Ash and trying to make spaces look
+

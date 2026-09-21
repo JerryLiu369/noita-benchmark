@@ -1,0 +1,17 @@
+SOURCE: https://noita.wiki.gg/wiki/Gems
+
+--- Gem - The Noita Wiki | https://noita.wiki.gg/wiki/Gem
+Gem can be any one of various coloured materials mostly used to define items. gems are used to define the bodies of Item UI. All gems are inert
+
+--- Celestial Scale - The Noita Wiki | https://noita.wiki.gg/wiki/Celestial_Scale
+If the cursor is hovered above a gem, the material displayed will simply be "Gem". The two gems are very light, making it easy for them to fly
+
+--- Turquoise Gemstone - The Noita Wiki | https://noita.wiki.gg/wiki/Turquoise_Gemstone
+The Turquoise Gemstone is an inert material used to define some green and turquoise-coloured gem-like items.
+
+--- Materials tagged with [sunbaby_ignore_list] - The Noita Wiki | https://noita.wiki.gg/wiki/Category:Materials_tagged_with_sunbaby_ignore_list
+Pages in category "Materials tagged with [sunbaby_ignore_list]" ; E · Excrement ; G · Gem ; R · Rock (Material) ; S · Sulphur ; T · Turquoise Gemstone.
+
+--- Mod:Apotheosis/Triangular Gem - The Noita Wiki | https://noita.wiki.gg/wiki/Mod:Apotheosis/Triangular_Gem
+This enemy fires greenish projectiles that deal damage when within range. There are no additional effects. Gallery. Triangular Gem Attack.
+

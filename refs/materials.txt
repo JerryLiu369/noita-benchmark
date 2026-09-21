@@ -1,0 +1,17 @@
+SOURCE: https://noita.wiki.gg/wiki/Materials
+
+--- Materials - The Noita Wiki | https://noita.wiki.gg/wiki/Materials
+There are many different materials in Noita, Liquid materials are often distinguished by their densities, and solid materials by their
+
+--- Category:Materials - The Noita Wiki | https://noita.wiki.gg/wiki/Category:Materials
+Materials Overarching category consisting of all in-game materials, material categories, and material tags.
+
+--- Material IDs - The Noita Wiki | https://noita.wiki.gg/wiki/Modding:Material_IDs
+A list of current Material IDs in Noita. They are mostly used for modding. Contents 1 Fire 2 Liquids 3 Gasses 4 Powders 5 Solids
+
+--- Item (Material) - The Noita Wiki | https://noita.wiki.gg/wiki/Item_(Material)
+Item material is inert and used to define the bodies of various items. Characteristics The normal variant is used to define the Kuu, Broken
+
+--- Modding: Making a custom material - The Noita Wiki | https://noita.wiki.gg/wiki/Modding:_Making_a_custom_material
+To make a custom material and even reactions between materials, like acid eating through ground, create an XML file with the same structure as
+

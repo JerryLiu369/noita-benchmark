@@ -1,0 +1,35 @@
+SOURCE: https://noita.wiki.gg/wiki/Table_of_Alchemical_Reactions
+
+--- Template:ReactionDefinition - The Noita Wiki | https://noita.wiki.gg/wiki/Template:ReactionDefinition
+Defines a material reaction that can occur during the game, including its rate (speed) and the reagents and products involved in the reaction.
+
+--- Alchemy - The Noita Wiki | https://noita.wiki.gg/wiki/Alchemy
+## Basic Reactions
+
+Some reactions are so basic and at the same time incredibly useful that they deserve their own chapter. This serves as a guide for new players on how to deal with these common situations.
+
+### Extinguishing Fire
+
+Being set On Fire On Fire is a great hazard since it deals percentage-based damage (2% of your maximum HP per second). If you have twice as much maximum health, fire will deal twice as much damage per tick!
+
+On Fire [...] This section lists some of the more useful alchemic reactions in alphabetical order, going by their reaction products. The reactions involve materials that are normally found during a regular playthrough, though some more frequently than others.
+
+### Materialpotion magic liquid protection all.png Ambrosia
+
+Materialpotion magic liquid protection all.png [...] The great majority of materials with alchemical properties are in liquid form, found either in potions or scattered throughout various biomes in the world. They can be mixed with other liquids or solid materials to produce different substances entirely. Reactions will happen on the overworld, as well as inside flasks and Powder Pouches.
+
+It would take a patient alchemist with access to all kinds of elements to discover how many unique reactions exist...
+
+## Contents
+
+## Basic Reactions
+
+--- Water/Reactions - The Noita Wiki | https://noita.wiki.gg/wiki/Water/Reactions
+Reactions where Water evaporates into Steam or disappears, and where Steam condenses back into Water.
+
+--- Table of Alchemical Reactions - The Noita Wiki | https://noita.wiki.gg/wiki/Table_of_Alchemical_Reactions
+Defines and lists all the alchemical reactions present in Noita. This reaction produces small fungal enemies as the powder is consumed, which
+
+--- Mod:Chemical Curiosities/Alchemy - The Noita Wiki | https://noita.wiki.gg/wiki/Mod:Chemical_Curiosities/Alchemy
+Chemical Curiosities adds a large collection of alchemical reactions across its Chemical Curiosities, Arcane Alchemy, and Mystical Mixtures
+

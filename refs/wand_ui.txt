@@ -1,0 +1,94 @@
+--- [Noita Guide] How to Build Wands: Basics｜ひよっこ魔女 | https://note.com/aoiro_moutain/n/nb3f2fccc06ad?hl=en
+Wand Status Screen
+
+・ShuffleIf Shuffle is "No," the spells in the wand's slots are cast in order from left to right.  
+If Shuffle is "Yes," the order in which spells are cast is "shuffled" randomly every time.  
+For building a specific wand configuration, it is pointless unless Shuffle is set to "No."  
+The use case for a "Yes" wand is to put spells in it that are effective even when cast individually. [...] ・Mana Charge Speed  
+The speed at which the wand's mana is replenished.  
+Since casting a large number of spells requires mana, this is an important stat.  
+This value is usually in a trade-off relationship with "Max Mana."
+
+・CapacityThe number of slots available for spells.  
+This is arguably the most important item; once you have resources, you will operate wands while finding a balance between capacity, recharge time, and mana. [...] ・Spells/Cast  
+The value representing how many slots' worth of spells are cast in a single action.  
+It is usually 1, and when this value is greater than 2, the recharge time tends to become excessively long.
+
+・Cast Delay  
+Cast delay is the cooldown time between performing one cast and the next.
+
+--- Wands - Noita Wiki | https://noita.fandom.com/wiki/Wands
+## Wand editing[]
+
+Wand editing is one of the main game mechanics of Noita, changing which spells and orderings are used in each wand. Wands can normally only be edited while inside the Holy Mountain.
+
+This content includes possible gameplay spoilers or secrets. Tread carefully.
+
+Wands can be edited elsewhere using the Tinker with Wands Everywhere perk, or while holding the Sauvan Ydin item.
+
+Spoiler Warning
+
+Click to show/hide content. [...] When you start in New Game mode in Noita, you are given two wands. As of version 1.0, the wands are the same but have a random selection from a small pool of spells, as well as some slight variance in their stats.
+
+The Daily Run game mode may change the contents of either of both wands; such as turning the bomb wand into a Fireball wand. You will also be given different loadouts if you start with the official class mod enabled.
+
+## Strategies & Tips[]
+
+## Wand editing[] [...] Wands can be edited elsewhere using the Tinker with Wands Everywhere perk, or while holding the Sauvan Ydin item.
+
+Wands can be edited elsewhere using the Tinker with Wands Everywhere perk, or while holding the Sauvan Ydin item.
+
+## Wand appearance[]
+
+Wand appearances are usually procedurally-selected. Similar designs may appear between runs, due to containing the same general spells and/or stats. This is primarily seen in the earliest biomes.
+
+--- The game actually discourages experimentation :: Noita ... | https://steamcommunity.com/app/881100/discussions/0/1749023254242069165
+2-3 wands, leaving 1-2 slots open just to pick up new wands, and forced to run back and forth to temples just to swap out spells. special wand
+
+--- Wands | https://noita.wiki.gg/wiki/Wands
+## Strategies & Tips
+
+gold
+
+Notes:
+
+## Wand editing
+
+Wand editing is one of the main game mechanics of Noita, changing which spells and orderings are used in each wand. Wands can usually only be edited while inside the Holy Mountain or with the Tinker with Wands Everywhere perk.
+
+Spoiler Warning
+
+See the Tinker with Wands Everywhere page for more details on additional methods.
+
+## Wand appearance [...] ## Contents
+
+## Starting Wands
+
+When a new game is started in Noita, you are usually given two wands: One for regular combat, and one for utility spells, usually for digging. The wands contain a random assortment of spells by default, picked from a small pool. Stats on the wands are also picked at random, with the utility wand usually having less Mana Recharge than the regular combat wand, in exchange for faster reloading times. [...] wiki.gg logo
+
+## Navigation menu
+
+### Namespaces
+
+### Views
+
+### Navigation
+
+### Content
+
+### Mods
+
+### Tools
+
+### In other languages
+
+# Wands
+
+Wands allow you to cast spells in Noita, and are your primary means of interacting with the world. You may hold up to four wands, each with their own set of spells.
+
+--- (minor spoilers) Can we talk about wand editing? : r/noita | https://www.reddit.com/r/noita/comments/dze77w/minor_spoilers_can_we_talk_about_wand_editing
+Editing wands is a core part of the game that players are currently locked out of for about 95% of each run. Editing wands is a core gameplay
+
+--- How does wand building work? - Arqade - Stack Exchange | https://gaming.stackexchange.com/questions/417848/how-does-wand-building-work
+Building wands seems to be a really complicated and unintuitive process. How does wand building work? What concepts and general tips do I want to keep in mind?
+
