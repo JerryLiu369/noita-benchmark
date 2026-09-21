@@ -3,3 +3,6 @@ node_modules/
 *.pyc
 __pycache__/
 test-results/
+
+# Optional Python browser-test environment (not part of the game)
+.venv/

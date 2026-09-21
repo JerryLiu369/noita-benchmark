@@ -1,0 +1,368 @@
+{
+  "date": "2026-09-21",
+  "browser": "Chromium 153 headless",
+  "desktopViewport": [
+    1440,
+    1000
+  ],
+  "mobileViewports": [
+    [
+      390,
+      844
+    ],
+    [
+      844,
+      390
+    ]
+  ],
+  "server": "python3 -m http.server 4173 --bind 0.0.0.0",
+  "naturalPlay": {
+    "wallSeconds": 76.6,
+    "initialSeed": 2427259341,
+    "maxKills": 5,
+    "deaths": [],
+    "final": {
+      "state": "play",
+      "kills": 5,
+      "gold": 43,
+      "elapsed": 78.54999999999683,
+      "deepest": 159,
+      "stats": {
+        "casts": 284,
+        "reactions": 146,
+        "damage": 9
+      }
+    },
+    "errors": []
+  },
+  "naturalDeath": {
+    "seed": 1469345192,
+    "state": "dead",
+    "kills": 0,
+    "elapsed": 6.449999999999982,
+    "stats": {
+      "casts": 0,
+      "reactions": 0,
+      "damage": 108,
+      "triggered": 0,
+      "projectiles": 0
+    },
+    "reason": "死因 · 被击杀：石牙兽"
+  },
+  "fixtureWarning": "Natural play/death used only real keyboard/mouse input. Regression checks also use isolated material, player-health and location fixtures. Guardian test uses increased player HP and a configured test wand; it is not evidence of a complete unassisted five-layer run. Mobile tests use Chromium touch emulation, not physical devices.",
+  "regressions": [
+    {
+      "name": "spawn: keyboard movement",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "spawn: jump / levitation",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "levitation has finite fuel",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "pause freezes simulation",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "density: oil above water above blood",
+      "pass": true,
+      "detail": {
+        "4": {
+          "mean": 67.5,
+          "n": 200
+        },
+        "5": {
+          "mean": 59.5,
+          "n": 200
+        },
+        "6": {
+          "mean": 75.5,
+          "n": 200
+        }
+      }
+    },
+    {
+      "name": "density swaps conserve all liquid pixels",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "lava + water -> rock and steam",
+      "pass": true,
+      "detail": {
+        "rock": 1,
+        "steam": 1
+      }
+    },
+    {
+      "name": "poison gas rises",
+      "pass": true,
+      "detail": 60
+    },
+    {
+      "name": "fire propagates along fuel",
+      "pass": true,
+      "detail": {
+        "peak": 71,
+        "wood": 0,
+        "flame": 0
+      }
+    },
+    {
+      "name": "fire expires when fuel is exhausted",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "acid corrodes even durable masonry",
+      "pass": true,
+      "detail": 50
+    },
+    {
+      "name": "powder falls under gravity",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "water extinguishes fire",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "explosions respect material durability",
+      "pass": true,
+      "detail": {
+        "rock": 0,
+        "brick": 18
+      }
+    },
+    {
+      "name": "trigger consumes exactly the next spell group",
+      "pass": true,
+      "detail": {
+        "node": {
+          "id": "impact",
+          "mods": [],
+          "payload": {
+            "id": "mote",
+            "mods": [
+              "fork",
+              "ember",
+              "seek"
+            ],
+            "payload": null
+          }
+        },
+        "cost": 49,
+        "next": 5
+      }
+    },
+    {
+      "name": "timer releases a three-projectile payload",
+      "pass": true,
+      "detail": {
+        "before": {
+          "casts": 0,
+          "reactions": 0,
+          "damage": 0,
+          "triggered": 0,
+          "projectiles": 0
+        },
+        "paid": 133,
+        "after": {
+          "casts": 1,
+          "reactions": 0,
+          "damage": 0,
+          "triggered": 1,
+          "projectiles": 4
+        }
+      }
+    },
+    {
+      "name": "payload mana is prepaid only once",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "collision trigger emits its payload on wood impact",
+      "pass": true,
+      "detail": {
+        "casts": 1,
+        "reactions": 0,
+        "damage": 0,
+        "triggered": 1,
+        "projectiles": 4
+      }
+    },
+    {
+      "name": "render: torch is bright while distant cave is dark",
+      "pass": true,
+      "detail": {
+        "flame": 246,
+        "dark": 14
+      }
+    },
+    {
+      "name": "real mouse drag swaps bag and wand slots",
+      "pass": true,
+      "detail": [
+        "fork",
+        "mote",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "name": "editing is locked away from workbenches",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "pickup adds a real usable wand",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "rest chamber has editing and a priced shop",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "rest chamber offers three perks",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "perk selection resumes the run",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "death cause: 烧死",
+      "pass": true,
+      "detail": "死因 · 烧死：衣袍被火焰吞噬"
+    },
+    {
+      "name": "death cause: 毒死",
+      "pass": true,
+      "detail": "死因 · 毒死：吸入剧毒孢雾"
+    },
+    {
+      "name": "death cause: 溺死",
+      "pass": true,
+      "detail": "死因 · 溺死：肺中的空气耗尽"
+    },
+    {
+      "name": "death cause: 蚀亡",
+      "pass": true,
+      "detail": "死因 · 蚀亡：酸液腐蚀"
+    },
+    {
+      "name": "death cause: falling boulder crush",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "restart resets seed, life, spells, gold and kills",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "biome 1 enters correctly",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "biome 2 enters correctly",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "biome 3 enters correctly",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "biome 4 enters correctly",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "biome 5 enters correctly",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "guardian can be defeated using projectiles",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "ember pickup leads to victory",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "mobile: hold left button moves player",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "mobile: levitation touch control",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "mobile: aiming pad fires projectiles",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "mobile: touch release stops firing",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "mobile: tap-tap spell editing",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "mobile: layout stays inside viewport",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "no uncaught browser errors",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "production does not expose test hooks",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "zero external runtime requests",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "file:// offline launch works",
+      "pass": true,
+      "detail": null
+    }
+  ]
+}

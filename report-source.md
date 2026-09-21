@@ -1,23 +1,57 @@
-# Noita 机制研究记录（实现用）
+# 研究与实现记录 · 余烬之下
 
-日期：2026-09-05。目标：为一个零后端浏览器原型提炼公开可验证的系统关系，而不是复刻原作资源或内部源码。
+更新：2026-09-21。先阅读 `TASK.md`、旧版说明及 `refs/` 全部文本资料，查看全部图片与三段本地视频画面，再重写运行时。本文替代旧版中不再适用的“八层、四把初始杖”等说明。参考文件保持原样。
 
-## 结论摘要
+## 1. 资料清单与可靠性
 
-Noita 的识别度来自几个互相耦合的系统：程序生成的纵向地牢；每像素参与的材料模拟；玩家自定义的魔杖与法术槽；生物群系之间的安全圣山；以及永久死亡的 roguelite 循环。实现因此把每像素材料、可破坏地形、魔杖时序、修饰符链、祝福选择和深度推进放在同一套循环里。
+共 **23 篇 Wiki 文件、12 份检索摘要、14 张图片、3 段视频**。文本阅读时去掉了重复链接、图片 URL 和重复行，但保留机制正文、表格与数值说明。图片制作联系表逐项查看；三段 MP4 均为约 15 秒片段，按秒抽帧覆盖片段全程，不把它们当作完整宣传片。
 
-## 证据矩阵
+### Wiki 正文
 
-| 机制族 | 公开证据 | 采用的实现解释 |
+- 材料与物理：`Materials.md`、`Table_of_Alchemical_Reactions.md`、`Damage.md`、`Explosion.md`、`Status_Effects.md`、`HP.md`。
+- 法杖与编排：`Wand.md`、`Wands.md`、`Spells.md`；两份 Wand 内容大量重叠。
+- 地形与生物：`Biomes.md`、`Enemies.md`、`Fungal_Caverns.md`、`Frozen_Vault.md`、`Perks.md`。
+- **六个空条目**：`Game_Mechanics.md`、`Projectile_Spells.md`、`Spell_Modifiers.md`、`Spell_Types.md`、`Utility_Spells.md`、`Wand_Crafting.md` 均为导航及 “There is currently no text in this page”，不当作已验证的机制证据。
+- **文件名错配**：`Golden_Mountain.md` 实际是 Perks 正文；`The_Coal_Pits.md` 实际是 Frozen Vault 正文。没有据此编造圣山布局或煤坑参数。
+- **抓取错页**：`how_noita_s_pixel_simulation_creates_emergent_gameplay.md` 是 Game Developer 设计栏目文章目录，不是题名中的像素模拟技术文章。
+
+### 检索摘要
+
+逐项阅读 `biomes.txt`、`enemies.txt`、`feel_notes.txt`、`game_mechanics.txt`、`gems.txt`、`golden_mountain.txt`、`lighting.txt`、`materials.txt`、`reactions.txt`、`spells.txt`、`wand_ui.txt`、`wands.txt`。它们混有社区讨论、模组、检索噪声和不完整片段，仅作补充：例如 `golden_mountain.txt` 多是 The Gold / Mountain Altar，不能证明休整区完整布局；`gems.txt` 说明宝石通常是惰性物件，不是本项目必须加入的货币机制。
+
+## 2. 机制证据 → 实现决策
+
+| 依据 | 读到的关键关系 | 本次实现 |
 |---|---|---|
-| 像素物理 | [Steam 官方商店页](https://store.steampowered.com/app/881100/Noita/) 明确描述“每个像素都被模拟”，并举出燃烧、爆炸、熔化、冻结、蒸发等交互；[GDC Vault](https://www.gdcvault.com/play/1025695/Exploring-the-Tech-and-Design) 介绍 Nolla 的 falling-sand 技术。 | 用材料网格和局部 cellular automaton 处理固体、液体、气体、火焰与反应。 |
-| 组合魔法 | Steam 官方页描述“组合你自己创造的法术”；[Spells](https://noita.wiki.gg/wiki/Spells) 和 [Wands](https://noita.wiki.gg/wiki/Wands) 的 Wiki 摘要列出 Cast Delay、Recharge Time、Mana、Mana Recharge 等关系。 | 魔杖是容器，槽位里放基础法术和修饰；基础法术决定投射物，修饰改变数量、追踪、爆炸、火焰、弹射、暴击或耗蓝。 |
-| 魔杖时序 | [Wand/Spell Interactions](https://steamcommunity.com/sharedfiles/filedetails/?id=1875447576) 说明 Cast Delay 与 Recharge Time 的实际交互；Wiki 的 [Wands](https://noita.wiki.gg/wiki/Wands) 摘要说明魔力每帧按回复速度恢复。 | 用 `castDelay + spell.delay` 形成槽间冷却，用独立 recharge/timer 控制射击节奏，保留“持续按住发射”的手感。 |
-| 材料与炼金 | [Materials](https://noita.wiki.gg/wiki/Materials)、[Alchemy](https://noita.wiki.gg/wiki/Alchemy) 和 [Water/Reactions](https://noita.wiki.gg/wiki/Water/Reactions) 记录液体、粉末、气体和相互转化；Wiki 摘要明确列出水与毒泥净化、熔岩/水反应等方向。 | 覆盖水、油、熔岩、血、毒液、砂、雪、火、烟、蒸汽等高辨识度材料；实现熔岩遇水成石、火扩散、蒸汽上升和液体流动。 |
-| 伤害与状态 | [Damage Types](https://noita.wiki.gg/wiki/Damage_Types)、[Status Effects](https://noita.wiki.gg/wiki/Status_Effects) 和 [Enemy Immunities](https://noita.wiki.gg/wiki/Enemy_Immunities) 的 Wiki 摘要显示伤害类型和状态/抗性是独立层。 | 原型保留爆炸、火焰、投射物、毒液和近战几类来源，并让祝福修改伤害与暴击。 |
-| 地牢循环 | [Biomes](https://noita.wiki.gg/wiki/Biomes) 摘要说明主路径由 8 个生物群系组成，每层之间有 Holy Mountain；[Perks](https://noita.wiki.gg/wiki/Perks) 和 [Holy Mountain](https://noita.wiki.gg/wiki/Holy_Mountain) 记录祝福与魔杖编辑的安全区。 | 生成 8 段纵向区域、圣山房间、三选一祝福、魔杖编辑和终层首领。 |
-| roguelite 结构 | [Steam 官方页](https://store.steampowered.com/app/881100/Noita/) 描述程序生成世界、永久死亡和“每次继续深入”。 | 死亡清空本局，种子重新生成；胜利击败终焉之眼后显示完成界面。 |
+| [Materials](refs/wiki/Materials.md) | 固体、液体、气体、粉末各有行为；液体看密度，地形破坏同时受耐久和硬度约束 | 20 个材料 ID、密度守恒交换、气体上浮、粉末下落、材质阈值与硬度衰减；逐 tick 标记防止单像素被重复更新 |
+| [反应表](refs/wiki/Table_of_Alchemical_Reactions.md) | 熔岩与水 → 石和蒸汽；燃烧、融冰、酸腐蚀产气；反应是相邻材料关系 | 四邻域反应；持续接触燃料的火焰传播，有限寿命后成烟；酸消耗并产生毒气；热融冰与法术冻水 |
+| [Wands](refs/wiki/Wands.md)、[Spells](refs/wiki/Spells.md) | 非乱序从左读；施法延迟和牌组充能不同；载荷预付魔力，触发时不再付费 | `readGroup()` 构造有序节点与递归载荷；独立回蓝、冷却、游标、洗牌；碰撞印、时砂印；界面显示分组和消耗 |
+| 同上及 `wand_ui.txt` | 常规限制为休整区编辑，最多持有四杖；法杖是可更换容器 | 出生刻印台、层间刻印台、四杖上限、满位替换掉落旧杖、跨杖/背包拖放、触屏点选交换、远处只读 |
+| [Biomes](refs/wiki/Biomes.md)、[Perks](refs/wiki/Perks.md) | 主线向下、层间休整、三项天赋选一、探索存在风险回报 | 按 TASK 要求改为五层原创路线，四个「烛息回廊」回血、商店及天赋，终层守卫与余烬交互结局 |
+| [Fungal Caverns](refs/wiki/Fungal_Caverns.md)、[Frozen Vault](refs/wiki/Frozen_Vault.md) | 潮湿菌区有毒性、可燃物和危险敌人；冰雪区域有替换材质 | 孢光菌庭的酸池、毒雾和菌灯；苍白霜窟的冰、雪与冷色晶体；不同色调、密度和敌人强度 |
+| [Creatures](refs/wiki/Enemies.md) | 地面、飞行、远程、挖穿地形等行为不同，视觉与危险需要可读 | 五种普通敌人，不使用原作名称；掘骨蠕虫真实挖掘；爆囊兽有闪烁引信；守卫有扇形弹幕 |
+| [Damage](refs/wiki/Damage.md)、[HP](refs/wiki/HP.md)、[Status](refs/wiki/Status_Effects.md) | 环境伤害、持续状态、窒息、物理冲击、永久死亡；最大生命与治疗不是同一件事 | 湿、油、烧、毒、氧气、落石、自伤；血瓶治疗与天赋加生命区分；记录致命事件，展示具体死因 |
+| [Explosion](refs/wiki/Explosion.md)、`feel_notes.txt` | 强力爆炸也危险；远程触发可降低自伤风险；像素变化应可感知 | 自伤、燃油桶连锁、击中闪白、抛射粒子、震屏、飘字和合成音效 |
 
-## 版本与证据限制
+**改编而非照搬**：材料密度和伤害数值为浏览器玩法近似；三岔复制后续单弹体而非原作全套抽牌行为；本作不实现原作的数百法术、秘密区域、阵营与全部炼金配方。空文件不用于推断这些高级机制。
 
-Noita Wiki 的部分页面在本环境中被 robots/403 阻挡，因此精确数值、完整条目数量和版本差异没有被冒充为已逐项核验；这份记录只把多个来源一致支持的系统关系用于实现。原作还包含更多法术、隐藏区域、敌人、秘密结局、成就、模组和精确材料配方，本原型将其留在扩展空间内。
+## 3. 视觉研究
+
+- `ss_00`：多种材料同时存在仍可分辨，场景留黑；采用蓝水、橙熔岩、红血、黄绿酸的分离色相。
+- `ss_01`：巨大建筑对比小角色；采用小尺寸原创角色、背景柱廊与更大的终层守卫。
+- `ss_02`：横向岩架被竖向裂隙串联；采用分层通道、侧室、可燃梁和下降裂隙，不再是一条均质窄井。
+- `ss_03`：菌区有独特紫/青发光语言；实现菌灯、孢庭背景与柔紫色局部光。
+- `ss_04`：冷暖远景层次与古老构筑物；转译为克制的矿架、门廊和原创刻印台，不复刻其建筑贴图。
+- `ss_05`：休整区物件可读、信息密集而不遮住世界；编排采用薄金/绿边框，按功能分色的小图标与数字。
+- `ss_06`：熔岩是强光源而非一条橙色线；熔池与炽核给邻近岩层实际补光。
+- `ss_07`：冰窟冷色、尖锐轮廓、大量明亮法术粒子；实现冷色材质、冰晶、短命粒子爆裂，设置粒子预算保护性能。
+- 另外六张预告片 JPG 逐项查看，其中两张 Early Access 图片接近全黑、两张 Snowy 图片主要为标题；它们不被用作细节贴图依据。
+- 三段视频：1.0 片段能看到编排→组合释放的联系；Early Access 片段显示小角色、局部光源和大规模地形影响；Snowy 片段主要是雪地氛围/标题。采用其中的层次关系和交互节奏，不导入任何画面、音乐或角色素材。
+
+## 4. 工程与验证边界
+
+运行代码为三个同目录文件，所有图形由 Canvas/CSS/像素模板原创绘制，声音由 WebAudio 合成。60 Hz 角色/战斗，30 Hz 活动区材料；移动端按容器纵横比调整模拟视窗，而不是拉伸画面。无网络字体或图片请求。
+
+测试中发现单像素火焰会先上浮、来不及点燃邻居，已改为接触燃料时附着传播，随后燃尽成烟；回归案例中 71 个剩余木像素全部燃尽，最终火像素为零。另修正了出生木柱阻路、重开残留提示、悬浮值可能微小为负等问题。
+
+实际试玩记录、48 项回归结果、与夹具测试的明确区分见 [README](README.md) 和 [结构化记录](tests/validation-2026-09-21.json)。没有声称完成实体手机测试、音频听感测评或无辅助的五层通关。
