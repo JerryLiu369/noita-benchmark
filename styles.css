@@ -1,0 +1,881 @@
+:root {
+  --bg: #05060b;
+  --panel: #0d101cee;
+  --panel-solid: #0d101c;
+  --panel-border: #383f58;
+  --line: #262c40;
+  --ink: #f0ecdc;
+  --muted: #8e95ac;
+  --gold: #f5cf62;
+  --gold-glow: #f5cf6244;
+  --hp-red: #e04855;
+  --mana-blue: #44a8f2;
+  --lev-yellow: #d8c257;
+  --oxy-cyan: #5ce0d8;
+  --toxic-green: #8ad838;
+  --accent: #8b6bf7;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+body {
+  display: grid;
+  place-items: center;
+  touch-action: none;
+}
+
+#app {
+  position: relative;
+  width: min(100vw, 1200px);
+  height: min(100vh, 675px);
+  aspect-ratio: 16 / 9;
+  display: grid;
+  place-items: center;
+  background: #000;
+  box-shadow: 0 0 0 1px #222638, 0 30px 100px rgba(0, 0, 0, 0.95);
+  overflow: hidden;
+}
+
+canvas#game {
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  background: #05060b;
+  display: block;
+  cursor: crosshair;
+}
+
+/* HUD System */
+#hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  font-size: 11px;
+  text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 2px 4px rgba(0,0,0,0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 10px 12px;
+  z-index: 2;
+}
+
+#topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.hud-cluster {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  background: rgba(13, 16, 28, 0.85);
+  border: 1px solid var(--panel-border);
+  color: #cfd4e6;
+  font-weight: bold;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+}
+
+.tag.biome-tag {
+  color: var(--gold);
+  border-color: #8c7333;
+}
+
+.tag.gold-tag {
+  color: #ffe678;
+  border-color: #a8892c;
+}
+
+.meter-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(13, 16, 28, 0.85);
+  padding: 2px 5px;
+  border: 1px solid var(--panel-border);
+}
+
+.meter-label {
+  font-size: 9px;
+  font-weight: bold;
+  color: #a8b0c8;
+}
+
+.meter {
+  position: relative;
+  width: 100px;
+  height: 8px;
+  background: #141724;
+  border: 1px solid #454d68;
+  box-shadow: inset 0 0 3px #000;
+  overflow: hidden;
+}
+
+.meter.meter-sm {
+  width: 65px;
+}
+
+.meter i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  transition: width 0.08s linear;
+}
+
+.hp i { background: linear-gradient(90deg, #b82b37, var(--hp-red)); }
+.mana i { background: linear-gradient(90deg, #2b7bb8, var(--mana-blue)); }
+.hover i { background: linear-gradient(90deg, #b09e37, var(--lev-yellow)); }
+.breath i { background: linear-gradient(90deg, #379e97, var(--oxy-cyan)); }
+
+.meter-text {
+  font-size: 10px;
+  font-weight: bold;
+  min-width: 48px;
+}
+
+/* Status effect icons / badges */
+#statusCluster {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.status-badge {
+  padding: 1px 5px;
+  font-size: 9px;
+  font-weight: bold;
+  border-radius: 2px;
+  border: 1px solid transparent;
+  animation: pulseBadge 1.2s infinite alternate;
+}
+
+.status-badge.fire {
+  background: #a32a13cc;
+  color: #ffd699;
+  border-color: #f77234;
+}
+
+.status-badge.wet {
+  background: #1b537acc;
+  color: #bbf0ff;
+  border-color: #40b4ff;
+}
+
+.status-badge.poison {
+  background: #467018cc;
+  color: #e5ffb3;
+  border-color: #8ce627;
+}
+
+.status-badge.blood {
+  background: #731320cc;
+  color: #ffb8c2;
+  border-color: #d6384c;
+}
+
+@keyframes pulseBadge {
+  0% { transform: scale(0.98); opacity: 0.85; }
+  100% { transform: scale(1.02); opacity: 1; }
+}
+
+/* Bottom HUD: Wands */
+#bottombar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+#wandHud {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.wand-chip {
+  min-width: 82px;
+  padding: 5px 8px;
+  border: 1px solid #3c435c;
+  background: rgba(10, 13, 23, 0.9);
+  color: #9da6be;
+  font-size: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  transition: all 0.15s ease;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.wand-chip:hover {
+  border-color: #636d8f;
+  background: rgba(18, 23, 38, 0.95);
+}
+
+.wand-chip.active {
+  border-color: var(--gold);
+  color: #fff4ca;
+  background: rgba(22, 26, 42, 0.95);
+  box-shadow: 0 0 10px var(--gold-glow), inset 0 0 0 1px rgba(245, 207, 98, 0.3);
+  transform: translateY(-2px);
+}
+
+.wand-chip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+}
+
+.wand-chip-header b {
+  color: #fff;
+  font-size: 11px;
+}
+
+.wand-chip-stats {
+  font-size: 9px;
+  color: #8c94aa;
+  display: flex;
+  justify-content: space-between;
+}
+
+.slotdots {
+  display: flex;
+  gap: 2px;
+  margin-top: 2px;
+  flex-wrap: wrap;
+}
+
+.slotdots s {
+  display: block;
+  width: 7px;
+  height: 7px;
+  background: #2b3042;
+  border: 1px solid #1a1e2b;
+  text-decoration: none;
+}
+
+.slotdots s.on {
+  background: #5ebcf8;
+  border-color: #2b7eb3;
+}
+
+.slotdots s.mod {
+  background: #c384f5;
+  border-color: #894cb8;
+}
+
+.slotdots s.trigger {
+  background: #f7a834;
+  border-color: #ba6d13;
+}
+
+#hint {
+  color: #cfd4e4;
+  text-align: right;
+  line-height: 1.6;
+  font-size: 10px;
+  opacity: 0.85;
+}
+
+.kbd {
+  display: inline-block;
+  border: 1px solid #4f5875;
+  background: #151a2b;
+  padding: 0 4px;
+  color: #fff;
+  border-radius: 2px;
+  font-size: 9px;
+  margin: 0 1px;
+}
+
+/* Center Announce / Toast */
+#toast {
+  position: absolute;
+  left: 50%;
+  top: 18%;
+  transform: translate(-50%, 0);
+  padding: 8px 18px;
+  border: 1px solid var(--gold);
+  background: rgba(11, 14, 25, 0.95);
+  color: #fff0aa;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  opacity: 0;
+  transition: opacity 0.25s, transform 0.25s;
+  pointer-events: none;
+  z-index: 5;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.8), 0 0 16px var(--gold-glow);
+  text-align: center;
+}
+
+#toast.danger {
+  border-color: #f74545;
+  color: #ffd2d2;
+  background: rgba(28, 9, 12, 0.95);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.8), 0 0 16px rgba(247, 69, 69, 0.4);
+}
+
+/* Modals & Overlays */
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(4, 5, 10, 0.88);
+  backdrop-filter: blur(2px);
+  z-index: 6;
+  transition: opacity 0.2s;
+}
+
+.hide, .overlay.hide {
+  display: none !important;
+}
+
+.card {
+  width: min(92%, 680px);
+  padding: 30px 36px;
+  border: 1px solid var(--panel-border);
+  background: linear-gradient(160deg, #12162a, #090c17);
+  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.95), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
+}
+
+.card h1 {
+  margin: 0 0 8px;
+  letter-spacing: 0.15em;
+  font-size: clamp(24px, 4vw, 42px);
+  color: var(--gold);
+  text-shadow: 0 0 18px var(--gold-glow);
+}
+
+.card h2 {
+  margin: 0 0 16px;
+  color: #92d4ff;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+}
+
+.card p {
+  color: #c4cbe0;
+  line-height: 1.65;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.card small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.primary {
+  border: 1px solid #deb54e;
+  background: linear-gradient(180deg, #a67c22, #7a5814);
+  color: #fff5c7;
+  padding: 10px 22px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  border-radius: 2px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+  transition: all 0.15s ease;
+}
+
+.primary:hover {
+  background: linear-gradient(180deg, #c4962d, #8f6918);
+  border-color: #ffd466;
+  box-shadow: 0 0 14px var(--gold-glow);
+}
+
+.primary:active {
+  transform: translateY(1px);
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+/* Dead Screen Banner */
+#deadReason {
+  color: #f76874;
+  font-size: 17px;
+  font-weight: bold;
+  padding: 8px 12px;
+  background: rgba(60, 15, 20, 0.5);
+  border-left: 3px solid #e04855;
+  margin-bottom: 18px;
+}
+
+#runStats {
+  background: rgba(14, 18, 30, 0.7);
+  border: 1px solid #2f364d;
+  padding: 12px 16px;
+  line-height: 1.8;
+  font-size: 12px;
+}
+
+/* Perk Selection Modal */
+#perkPanel {
+  position: absolute;
+  z-index: 7;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(94%, 760px);
+  max-height: 90%;
+  overflow: auto;
+  border: 1px solid #5a4b75;
+  background: rgba(14, 11, 24, 0.97);
+  box-shadow: 0 20px 90px #000, 0 0 30px rgba(139, 107, 247, 0.25);
+  padding: 22px 24px;
+}
+
+.panel-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  color: var(--gold);
+  border-bottom: 1px solid #39304a;
+  padding-bottom: 8px;
+}
+
+.panel-title b {
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+.panel-title span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.perk-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.perk {
+  border: 1px solid #4a3e63;
+  background: linear-gradient(160deg, #19142b, #100d1e);
+  padding: 16px 14px;
+  cursor: pointer;
+  color: #e5e7f0;
+  min-height: 135px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  text-align: left;
+  border-radius: 2px;
+  transition: all 0.15s ease;
+}
+
+.perk:hover {
+  border-color: #b78ef5;
+  background: linear-gradient(160deg, #281e47, #17132a);
+  box-shadow: 0 0 16px rgba(183, 142, 245, 0.3);
+  transform: translateY(-2px);
+}
+
+.perk-icon {
+  font-size: 22px;
+  margin-bottom: 8px;
+}
+
+.perk b {
+  display: block;
+  color: #f7d679;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.perk small {
+  color: #afb7cc;
+  line-height: 1.5;
+  font-size: 11px;
+}
+
+/* Wand Workshop & Spell Inventory Modal */
+#wandPanel.hide { display: none !important; }
+#wandPanel {
+  display: block;
+  position: absolute;
+  z-index: 7;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(96%, 860px);
+  max-height: 92%;
+  overflow-y: auto;
+  border: 1px solid #4f5778;
+  background: rgba(10, 13, 24, 0.97);
+  box-shadow: 0 24px 100px #000, 0 0 24px rgba(68, 168, 242, 0.2);
+  padding: 20px 24px;
+}
+
+.workshop-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #2c334d;
+  padding-bottom: 10px;
+}
+
+.workshop-title {
+  color: var(--gold);
+  font-size: 15px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.close-btn {
+  border: 1px solid #545e82;
+  background: #181e33;
+  color: #d8deee;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  background: #2b3457;
+  border-color: #8c9ac9;
+}
+
+/* Wand selection tabs */
+.wand-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  overflow-x: auto;
+}
+
+.wand-tab {
+  flex: 1;
+  min-width: 120px;
+  padding: 8px 10px;
+  border: 1px solid #363d59;
+  background: #12172a;
+  color: #a4adc7;
+  cursor: pointer;
+  text-align: left;
+  border-radius: 2px;
+  transition: all 0.15s;
+}
+
+.wand-tab.active {
+  border-color: var(--gold);
+  background: #1c223c;
+  color: #fff0be;
+  box-shadow: 0 0 10px var(--gold-glow);
+}
+
+.wand-tab-title {
+  font-weight: bold;
+  font-size: 12px;
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.wand-tab-sub {
+  font-size: 10px;
+  color: #808aab;
+}
+
+/* Active Wand Display */
+.active-wand-card {
+  border: 1px solid #3f496d;
+  background: #111629;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+.wand-spec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+  background: #090c17;
+  padding: 10px 12px;
+  border: 1px solid #23283d;
+}
+
+.spec-item {
+  font-size: 10px;
+  color: #8e98b5;
+  display: flex;
+  justify-content: space-between;
+}
+
+.spec-item b {
+  color: #e4e8f7;
+}
+
+.slots-title {
+  font-size: 11px;
+  font-weight: bold;
+  color: #c7cfeb;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.spell-slots-grid {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-height: 52px;
+  padding: 8px;
+  background: #0b0f1e;
+  border: 1px solid #272e47;
+}
+
+.spell-slot-cell {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border: 1px dashed #3a4260;
+  background: #141a2e;
+  display: grid;
+  place-items: center;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.spell-slot-cell:hover {
+  border-color: #6574a6;
+  background: #1b233e;
+}
+
+.spell-slot-cell.occupied {
+  border-style: solid;
+  border-color: #4a557c;
+}
+
+.spell-slot-cell.selected {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+  border-color: var(--gold);
+  background: #2a2517;
+}
+
+/* Spell Card UI inside slot or pouch */
+.spell-card-inner {
+  width: 100%;
+  height: 100%;
+  padding: 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 8px;
+  line-height: 1.1;
+  pointer-events: none;
+}
+
+.spell-card-inner .spell-icon {
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.spell-card-inner .spell-name {
+  color: #fff;
+  font-weight: bold;
+  max-width: 40px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Type color indicators */
+.spell-slot-cell[data-type="projectile"] { border-color: #3b8ac4; }
+.spell-slot-cell[data-type="trigger"] { border-color: #d98829; }
+.spell-slot-cell[data-type="mod"] { border-color: #a55ff0; }
+
+/* Spell Inventory / Pouch */
+.inventory-section {
+  border: 1px solid #363e5b;
+  background: #0f1324;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+
+.pouch-grid {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-height: 52px;
+  padding: 8px;
+  background: #090c17;
+  border: 1px solid #23283d;
+}
+
+/* Spell Inspector Tooltip */
+#spellInspector {
+  background: #0b0f1e;
+  border: 1px solid #3f4a70;
+  padding: 8px 12px;
+  font-size: 11px;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.inspector-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.inspector-title {
+  font-weight: bold;
+  color: var(--gold);
+  font-size: 12px;
+}
+
+.inspector-desc {
+  color: #aab3cf;
+  font-size: 10px;
+}
+
+.inspector-stats {
+  display: flex;
+  gap: 12px;
+  font-size: 10px;
+  color: #838da8;
+  white-space: nowrap;
+}
+
+.inspector-stats b {
+  color: #e3e8f8;
+}
+
+/* Mobile & Touch Controls */
+.touch {
+  display: none;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.touch button {
+  pointer-events: auto;
+  touch-action: none;
+  border: 1px solid #586385;
+  background: rgba(17, 23, 42, 0.82);
+  color: #f0f3ff;
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 20px;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+  transition: background 0.08s, transform 0.08s;
+}
+
+.touch button:active {
+  background: rgba(43, 56, 99, 0.95);
+  border-color: var(--gold);
+  transform: scale(0.94);
+}
+
+.touch .left { position: absolute; left: 14px; bottom: 20px; }
+.touch .right { position: absolute; left: 74px; bottom: 20px; }
+.touch .jump { position: absolute; left: 44px; bottom: 82px; }
+.touch .down { position: absolute; left: 44px; bottom: 20px; width: 28px; height: 28px; font-size: 12px; }
+
+.touch .fire {
+  position: absolute;
+  right: 18px;
+  bottom: 22px;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  border-color: #cca449;
+  background: rgba(36, 30, 15, 0.85);
+  color: #ffe699;
+  font-size: 28px;
+}
+
+.touch .wand {
+  position: absolute;
+  right: 22px;
+  bottom: 118px;
+  width: 60px;
+  height: 42px;
+  font-size: 11px;
+}
+
+.touch .edit {
+  position: absolute;
+  right: 88px;
+  bottom: 118px;
+  width: 50px;
+  height: 42px;
+  font-size: 11px;
+}
+
+.touch .kick {
+  position: absolute;
+  right: 110px;
+  bottom: 24px;
+  width: 46px;
+  height: 46px;
+  font-size: 12px;
+}
+
+@media (pointer: coarse), (max-width: 768px) {
+  #hint { display: none; }
+  .touch { display: block; }
+  #app { width: 100vw; height: 100vh; }
+  .card { padding: 22px 24px; }
+  .perk-grid { grid-template-columns: 1fr; }
+  .meter { width: 70px; }
+}
