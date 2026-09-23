@@ -36,6 +36,21 @@
 
 ---
 
+## 🎯 统一评测提示词与启动指令 (Evaluation Prompt & Runner Commands)
+
+为确保纯粹客观的基准对照，本评测对所有模型均使用**完全一致、单轮直发、无人工干预**的标准启动提示词：
+
+> **统一启动提示词 (Prompt Text)**：
+> ```text
+> 请仔细研读仓库内的 TASK.md 与 refs/ 资料，自主将当前游戏全面重做为机制高还原、画面与物理完备的 Noita 网页像素游戏，并在完成后编写 DONE.md 说明。
+> ```
+
+每个模型均在专属隔离沙盒中自主运行，具体 CLI 启动脚本与规格细节请查阅完整文档：
+- 📄 **[评测启动指令与提示词规范完整说明 (PROMPT.md)](./PROMPT.md)**
+- 📋 **[沙盒任务规格与红线说明书 (TASK.md)](./TASK.md)**
+
+---
+
 ## 📋 评测规格与硬核约束 (Task Specification)
 
 不同于常规只测几十行代码函数修复的 `SWE-bench`，本 Benchmark 专为**长程自主系统工程（Long-Horizon Autonomous SWE）**设计。
