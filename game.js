@@ -3043,11 +3043,18 @@ function initInput() {
   window.addEventListener('keyup', (e) => { const a = KEYMAP[e.code]; if (a) keys.delete(a); });
   window.addEventListener('blur', inputReset);
   const toLow = (e) => { mouseX = (e.clientX - viewOX) / viewScale; mouseY = (e.clientY - viewOY) / viewScale; };
-  window.addEventListener('mousemove', (e) => { toLow(e); if (state === 'play') touchMode = false; });
-  cv.addEventListener('mousedown', (e) => { initAudio(); toLow(e); touchMode = false; if (e.button === 0 && state === 'play') mouseDown = true; if (e.button === 2) presses.add('interact'); });
-  $('fx').addEventListener('mousedown', (e) => { initAudio(); toLow(e); touchMode = false; if (e.button === 0 && state === 'play') mouseDown = true; });
+  window.addEventListener('mousemove', (e) => {
+    toLow(e);
+    if (state === 'play') { touchMode = false; document.body.classList.remove('touch'); }
+  });
+  window.addEventListener('mousedown', (e) => {
+    if (e.target.closest && (e.target.closest('#editor') || e.target.closest('.panel') || e.target.closest('.tbtn'))) return;
+    initAudio(); toLow(e); touchMode = false; document.body.classList.remove('touch');
+    if (e.button === 0 && state === 'play') mouseDown = true;
+    if (e.button === 2) { e.preventDefault(); presses.add('interact'); }
+  });
   window.addEventListener('mouseup', (e) => { if (e.button === 0) mouseDown = false; });
-  window.addEventListener('contextmenu', (e) => { if (e.target === cv || e.target === $('fx')) e.preventDefault(); });
+  window.addEventListener('contextmenu', (e) => { if (state === 'play') e.preventDefault(); });
   window.addEventListener('wheel', (e) => { if (state === 'play') { wandStep += e.deltaY > 0 ? 1 : -1; } }, { passive: true });
   initTouch();
   document.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); initAudio(); uiAction(b.dataset.act); }));
@@ -3064,8 +3071,7 @@ function uiAction(act) {
 }
 function initTouch() {
   const tz = $('touch');
-  const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
-  if (isTouch) document.body.classList.add('touch');
+  // Do not unconditionally activate touch on laptops with touchscreen/touchpad
   const stickL = $('stickL'), stickR = $('stickR');
   const place = (el, x, y) => { el.style.display = 'block'; el.style.left = x + 'px'; el.style.top = y + 'px'; };
   const knob = (el, dx, dy) => { const k = el.firstElementChild; const d = Math.hypot(dx, dy), m = Math.min(1, 40 / (d || 1)); k.style.transform = `translate(${dx * m}px,${dy * m}px)`; };
