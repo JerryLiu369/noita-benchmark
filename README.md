@@ -20,12 +20,12 @@
 
 ## 🏆 参赛模型与 Pull Requests 成果总览
 
-本基准共汇聚了来自 **OpenAI、Anthropic (LM Arena)、DeepSeek、StepFun (阶跃星辰)、Xiaomi MiMo、Google 与开源贡献者** 的 9 款前沿模型。所有模型的独立分支与实现细节均已通过 Pull Request 提交：
+本基准共汇聚了来自 **OpenAI、DeepSeek、StepFun (阶跃星辰)、Xiaomi MiMo、Google、开源贡献者，以及来自 LM Arena 社区盲测对决** 的 9 款前沿模型产物。所有模型的独立分支与实现细节均已通过 Pull Request 提交：
 
 | 排名 / 阵营 | 参赛模型 | 作品名称 | 线上直达试玩 | 对应 PR | 总 Tokens | Cache 命中率 | 官方折算总价 | 核心技术亮点 |
 |:---|:---|:---|:---|:---|:---:|:---:|:---:|:---|
 | 👑 **标杆旗舰** | **GPT-6-Astra** | **《深井余烬》** <br>`EMBER DEEP` | [▶ 试玩 Astra](https://noita.myai1010.top/astra/) | [#3](https://github.com/JerryLiu369/noita-benchmark/pull/3) | 1,465 万 | 92.2% | ~$30.58 USD | 首创 38 种材料分层、热力传导、法杖连锁组装、动态径向洞穴光晕 |
-| 🛡️ **盲测绝杀** | **Arena 2** <br>*(极大概率 Claude 3.7)* | **《余烬之下》** <br>`EMBER BELOW` | [▶ 试玩 Arena 2](https://noita.myai1010.top/arena-2/) | [#2](https://github.com/JerryLiu369/noita-benchmark/pull/2) | — | — | 盲测对决 | 48 项 Playwright 全绿，材料流体极其细腻，空间探索与法杖连击超群 |
+| 🛡️ **盲测绝杀** | **Arena 2** <br>*(LM Arena 盲测选手)* | **《余烬之下》** <br>`EMBER BELOW` | [▶ 试玩 Arena 2](https://noita.myai1010.top/arena-2/) | [#2](https://github.com/JerryLiu369/noita-benchmark/pull/2) | — | — | 盲测对决 | 48 项 Playwright 全绿，材料流体极其细腻，空间探索与法杖连击超群 |
 | 🌟 **求索巨构** | **DeepSeek-V4.1-Flash** | **《求索深渊》** <br>`DEEP CHASM` | [▶ 试玩 DS41](https://noita.myai1010.top/ds41/) | [#4](https://github.com/JerryLiu369/noita-benchmark/pull/4) | 6,943.5 万 | 98.7% | ¥8.27 <br>(~$1.20) | **47 种材料（全场之最）**，4000 行 6 模块分治拼装，超长程流体压测 |
 | ✨ **阶跃旗舰** | **Step-5-Preview** | **《阶跃炼金》** <br>`STEP5 ALCHEMIST` | [▶ 试玩 Step5](https://noita.myai1010.top/step5/) | [#5](https://github.com/JerryLiu369/noita-benchmark/pull/5) | 3,555.3 万 | 93.6% | ¥30.06 <br>(~$4.36) | 36 种材料，14 弹体 14 修饰，烧/溺/压/毒/砍 5 大死因全真机捕获 |
 | 🔮 **谷歌极速** | **Gemini-3.8-Flash** | **《双子炼金》** <br>`GEMINI ALCHEMIST` | [▶ 试玩 Gemini](https://noita.myai1010.top/gemini/) | [#9](https://github.com/JerryLiu369/noita-benchmark/pull/9) | 1,161.7 万 | 72.0% | ¥6.03 <br>(~$0.87) | 首创深渊巨蠕虫实时啃穿岩壁、终焉之眼三阶段 Boss 战、原生合成音效 |
