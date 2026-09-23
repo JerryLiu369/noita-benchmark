@@ -51,6 +51,46 @@
 
 ---
 
+## 🧪 新模型标准评测接入流程 (Standard Evaluation & Anti-Leak Workflow)
+
+为保证所有参赛模型处于**绝对公平、无历史污染、防提示词泄密（Anti-Cheating）**的盲测环境中，评测一个全新模型必须严格遵守以下四步流水线：
+
+```
+[1. 克隆并剥离元数据]  git clone -> 彻底删除 .git 和 README.md -> 保留纯净沙盒
+        │
+[2. 单轮盲测启动]     传入统一 PROMPT -> Agent 自主阅读 TASK.md 与 refs/ 攻坚
+        │
+[3. 交付物与门禁核验]  必须具备 DONE.md + Headless 真机实测验证通过
+        │
+[4. 外部受控提交 PR]  由人类或外部看门狗将产物挂载至全新分支并提交 PR
+```
+
+### 1. 为什么必须删掉 `.git` 和 `README.md`？
+- **防分支与提交窥探（No Git History Leak）**：
+  若保留 `.git`，高阶 Agent 在探索环境时极易执行 `git log`、`git branch -a` 或翻阅 stash，从而调取其他顶尖模型的提交历史、代码 diff 与解题策略；
+- **防题面与战报泄露（No Benchmark Spoiling）**：
+  `README.md` 记录了所有已完赛模型的架构亮点、PR 链接与材料数量（如“DeepSeek 做了 47 种材料”、“Astra 做了法杖连锁”）。若保留此文件，模型会直接提取其他模型的总结进行套话抄袭，丧失“第一性原理从零设计”的评测价值。
+- **沙盒内仅保留**：`TASK.md`（原始任务书）、`refs/`（原作离线参考维基与实机图）、初始极简游戏原型（`index.html` + `game.js` + `report-source.md`）。
+
+### 2. 标准自动化启动脚手架
+```bash
+# 1. 准备沙盒
+git clone https://github.com/JerryLiu369/noita-benchmark.git /tmp/eval-new-model
+cd /tmp/eval-new-model
+
+# 2. 剥离 Git 元数据与主站战报 (关键防作弊步骤)
+rm -rf .git README.md
+
+# 3. 传入标准统一 Prompt 单轮直发
+PROMPT="请仔细研读仓库内的 TASK.md 与 refs/ 资料，自主将当前游戏全面重做为机制高还原、画面与物理完备的 Noita 网页像素游戏，并在完成后编写 DONE.md 说明。"
+opencode run --agent bypassPermissions -m "<PROVIDER>/<NEW_MODEL>" "$PROMPT"
+```
+
+### 3. 外部提交 PR 规程 (Prevent Direct Write)
+严禁将带写权限的 GitHub Token 注入受试 Agent 的沙盒环境。待模型打出 `DONE.md` 并完成真机实测后，由评测员在外部干净仓库中开辟分支 `bench/<model-name>`，提取修改文件完成提交与 PR 发起。
+
+---
+
 ## 📋 评测规格与硬核约束 (Task Specification)
 
 不同于常规只测几十行代码函数修复的 `SWE-bench`，本 Benchmark 专为**长程自主系统工程（Long-Horizon Autonomous SWE）**设计。
