@@ -2,46 +2,250 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>PIXEL ALCHEMIST · Noita 风格像素物理冒险</title>
-  <style>
-    :root{--bg:#080910;--ink:#f2eedc;--muted:#9da1b0;--panel:#111421ee;--line:#363b52;--gold:#f2c85b;--accent:#72d5ff}
-    *{box-sizing:border-box} html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-    body{display:grid;place-items:center;touch-action:none}
-    #app{position:relative;width:min(100vw,1000px);height:min(100vh,720px);display:grid;place-items:center}
-    canvas{image-rendering:pixelated;image-rendering:crisp-edges;width:100%;height:100%;background:#05060b;box-shadow:0 0 0 1px #303447,0 20px 80px #000;cursor:crosshair}
-    #hud{position:absolute;inset:0;pointer-events:none;font-size:12px;text-shadow:2px 2px #000}
-    #topbar{position:absolute;left:12px;right:12px;top:10px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
-    .cluster{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.meter{width:122px;height:10px;border:1px solid #697188;background:#151927;box-shadow:inset 0 0 0 2px #070910}.meter i{display:block;height:100%;width:50%;transition:width .1s}.hp i{background:#d95760}.mana i{background:#4da9e8}.hover i{background:#c7b75f}
-    #depth{color:#c9cedd}.tag{border:1px solid #4a516d;padding:3px 6px;background:#0e1120cc;color:#d9deed}
-    #wandHud{position:absolute;left:12px;bottom:12px;display:flex;gap:5px;align-items:end}.wand-chip{min-width:76px;padding:5px 6px;border:1px solid #4b536e;background:#0d101bcc;color:#bbc3d9;font-size:10px}.wand-chip.active{border-color:var(--gold);color:#fff2b8;box-shadow:0 0 12px #c59d3433}.wand-chip b{display:block;color:#fff;font-size:11px;margin-bottom:2px}.slotdots{display:flex;gap:2px}.slotdots s{display:block;width:8px;height:8px;background:#555b76;text-decoration:none}.slotdots s.on{background:#7ad8ff}
-    #hint{position:absolute;right:12px;bottom:12px;color:#d2d5e0;text-align:right;line-height:1.5;opacity:.9}.kbd{border:1px solid #616984;background:#151a2a;padding:1px 4px;color:#fff}
-    .overlay{position:absolute;inset:0;display:grid;place-items:center;background:#05060bd9;z-index:4}.overlay.hide{display:none}.card{width:min(92%,640px);padding:28px 30px;border:1px solid #59617d;background:linear-gradient(160deg,#15192aee,#0a0c15ee);box-shadow:0 16px 80px #000}.card h1{margin:0 0 8px;letter-spacing:.12em;font-size:clamp(22px,4vw,42px);color:#f7d974}.card h2{margin:0 0 16px;color:#a6dfff;font-size:14px;font-weight:400}.card p{color:#c6cbd7;line-height:1.6}.card small{color:#8e95a8}.primary{border:1px solid #ddbb50;background:#8f6b1d;color:#fff3b5;padding:11px 20px;font:inherit;cursor:pointer}.primary:hover{background:#b58a27}.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
-    #wandPanel,#perkPanel{position:absolute;z-index:5;left:50%;top:50%;transform:translate(-50%,-50%);width:min(94%,720px);max-height:90%;overflow:auto;border:1px solid #68718e;background:#0a0d18f5;box-shadow:0 20px 80px #000;padding:18px}.panel-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;color:#f3d671}.panel-title span{color:#96a0b7;font-size:11px}.wand-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}.wand-card{border:1px solid #394158;padding:10px;background:#111625}.wand-card.active{border-color:#d9b84e}.wand-card h3{margin:0 0 6px;font-size:12px;color:#f5e7a1}.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:3px;color:#99a5bf;font-size:10px;margin-bottom:8px}.spell-row{display:flex;gap:4px;flex-wrap:wrap}.spell-btn{min-width:50px;border:1px solid #4a5370;background:#1a2031;color:#e7ebf2;padding:4px;font:inherit;font-size:10px;cursor:pointer}.spell-btn.selected{outline:1px solid #f4d266;background:#3c3519}.perk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.perk{border:1px solid #4e5670;background:#121829;padding:13px;cursor:pointer;color:#e4e8f4;min-height:120px}.perk:hover{border-color:#f4cf60}.perk b{display:block;color:#f5d36c;margin-bottom:8px}.perk small{color:#acb4ca;line-height:1.45}
-    #toast{position:absolute;left:50%;top:22%;transform:translateX(-50%);padding:8px 14px;border:1px solid #c8ad58;background:#151828e8;color:#fff0a9;opacity:0;transition:opacity .2s;pointer-events:none}.touch{display:none;position:absolute;inset:0;pointer-events:none;z-index:3}.touch button{pointer-events:auto;touch-action:none;border:1px solid #77809c;background:#111528b8;color:#eef0f6;width:54px;height:54px;border-radius:12px;font:inherit;font-size:21px}.touch .left{position:absolute;left:16px;bottom:20px}.touch .right{position:absolute;left:78px;bottom:20px}.touch .jump{position:absolute;left:48px;bottom:84px}.touch .fire{position:absolute;right:20px;bottom:24px;width:82px;height:82px;border-radius:50%;border-color:#caa34e;color:#ffe49a}.touch .wand{position:absolute;right:26px;bottom:118px;width:58px;height:40px;font-size:12px}
-    @media (pointer:coarse),(max-width:720px){#hint{display:none}.touch{display:block}#app{width:100vw;height:100vh}.card{padding:22px}.perk-grid{grid-template-columns:1fr}.wand-grid{grid-template-columns:1fr 1fr}}
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#07080a" />
+  <meta name="color-scheme" content="dark" />
+  <link rel="icon" href="data:," />
+  <title>烬隙 / ASHFALL</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main id="app">
-    <canvas id="game" width="320" height="180" aria-label="像素物理地牢"></canvas>
-    <div id="hud">
-      <div id="topbar">
-        <div class="cluster"><span class="tag">HP</span><div class="meter hp"><i id="hpFill"></i></div><span id="hpText">100/100</span><span class="tag">MANA</span><div class="meter mana"><i id="manaFill"></i></div><span id="manaText">120</span><span class="tag">LEV</span><div class="meter hover"><i id="hoverFill"></i></div></div>
-        <div class="cluster"><span id="biome" class="tag">MINES</span><span id="depth">0m</span><span id="gold" class="tag">0 gold</span></div>
+  <main id="app" aria-label="烬隙 / ASHFALL 像素炼金地牢">
+    <canvas id="game" width="480" height="270" tabindex="0" aria-label="烬隙地牢世界。使用方向键或 WASD 移动，鼠标瞄准并施放法术。"></canvas>
+
+    <div id="hud" aria-label="游戏状态仪表">
+      <header id="topbar" aria-label="远征状态">
+        <div class="hud-left">
+          <div class="brand-mini" aria-label="ASHFALL">
+            <span class="brand-rune" aria-hidden="true">✦</span>
+            <span class="brand-word">ASHFALL</span>
+          </div>
+          <div class="resource-cluster" aria-label="角色与魔力">
+            <div id="healthWrap" class="resource health-resource">
+              <div class="resource-heading">
+                <span class="resource-label">生命</span>
+                <span id="healthText" class="resource-value">100 / 100</span>
+              </div>
+              <div class="resource-track" role="meter" aria-label="生命" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
+                <span id="healthFill" class="resource-fill health-fill"></span>
+              </div>
+            </div>
+            <div id="breathWrap" class="resource breath-resource">
+              <div class="resource-heading">
+                <span class="resource-label">悬浮</span>
+                <span class="resource-value breath-value">燃料</span>
+              </div>
+              <div class="resource-track" role="meter" aria-label="悬浮燃料" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
+                <span id="breathFill" class="resource-fill breath-fill"></span>
+              </div>
+            </div>
+            <div id="manaWrap" class="resource mana-resource">
+              <div class="resource-heading">
+                <span class="resource-label">魔力</span>
+                <span id="manaText" class="resource-value">140</span>
+              </div>
+              <div class="resource-track" role="meter" aria-label="魔力" aria-valuemin="0" aria-valuemax="140" aria-valuenow="140">
+                <span id="manaFill" class="resource-fill mana-fill"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hud-right">
+          <div class="run-readout" aria-label="远征信息">
+            <span id="zone" class="zone-tag">锈蚀矿坑</span>
+            <span class="readout-cell"><small>深度</small><strong id="depth">0m</strong></span>
+            <span class="readout-cell gold-readout"><small>金币</small><strong id="gold">0</strong></span>
+          </div>
+          <div class="hud-utility">
+            <span id="seedTag" class="seed-tag" title="本局随机种子">SEED —</span>
+            <output id="fps" class="fps-readout" aria-label="帧率">60 FPS</output>
+            <button id="helpBtn" class="utility-button" type="button" aria-label="打开操作说明" title="操作说明">?</button>
+            <button id="audioBtn" class="utility-button audio-button" type="button" aria-label="切换声音" aria-pressed="true" title="声音">声</button>
+          </div>
+        </div>
+      </header>
+
+      <div id="statusStrip" class="status-strip" role="status" aria-live="polite">
+        <span class="status-light" aria-hidden="true"></span>
+        <span class="status-copy">提灯稳定 · 向下探索</span>
       </div>
-      <div id="wandHud"></div>
-      <div id="hint"><span class="kbd">A/D</span> 移动　<span class="kbd">W/Space</span> 飞跃　<span class="kbd">鼠标</span> 瞄准/开火　<span class="kbd">1-4</span> 换杖　<span class="kbd">E</span> 改杖</div>
+
+      <div id="bossHud" class="boss-hud hidden hide" role="status" aria-live="polite"></div>
+
+      <div id="messageLog" class="message-log" role="log" aria-live="polite" aria-relevant="additions">
+        <div class="log-line log-muted">矿道深处传来回声……</div>
+      </div>
+
+      <aside id="hoverCard" class="hover-card hidden hide" aria-live="polite">
+        <span class="hover-kicker">检视</span>
+        <strong id="hoverName">—</strong>
+        <span id="hoverMeta">移动指针查看材料</span>
+      </aside>
+
+      <div id="contextPrompt" class="context-prompt" aria-live="polite">
+        <span class="prompt-mark" aria-hidden="true">◆</span>
+        <span>靠近祭坛或按 <kbd>E</kbd> 打开魔杖编辑台</span>
+      </div>
+
+      <div id="wandBar" class="wand-bar" role="toolbar" aria-label="魔杖槽，共四格">
+        <button class="wand-slot empty" type="button" data-wand-slot="0" aria-label="魔杖槽 1">
+          <span class="slot-index">1</span><span class="slot-name">空槽</span><span class="slot-meta">—</span>
+        </button>
+        <button class="wand-slot empty" type="button" data-wand-slot="1" aria-label="魔杖槽 2">
+          <span class="slot-index">2</span><span class="slot-name">空槽</span><span class="slot-meta">—</span>
+        </button>
+        <button class="wand-slot empty" type="button" data-wand-slot="2" aria-label="魔杖槽 3">
+          <span class="slot-index">3</span><span class="slot-name">空槽</span><span class="slot-meta">—</span>
+        </button>
+        <button class="wand-slot empty" type="button" data-wand-slot="3" aria-label="魔杖槽 4">
+          <span class="slot-index">4</span><span class="slot-name">空槽</span><span class="slot-meta">—</span>
+        </button>
+      </div>
     </div>
-    <div id="toast"></div>
-    <section id="title" class="overlay">
-      <div class="card"><h1>PIXEL ALCHEMIST</h1><h2>一款 Noita 风格的纯前端像素物理地牢</h2><p>向下探索八层随机地牢。每个像素都会坠落、流动、燃烧、蒸发或反应；魔杖只是容器，真正的力量来自法术组合。</p><p><small>原创实现 · 单文件离线运行 · 桌面键鼠与手机触控 · 每局随机种子</small></p><div class="row"><button id="startBtn" class="primary">开始新的远征</button></div></div>
+
+    <div id="touchControls" role="toolbar" aria-label="触屏操作">
+      <div class="touch-cluster movement-cluster" aria-label="移动">
+        <button id="touchLeft" class="touch-button" type="button" aria-label="向左移动"><span class="touch-glyph">◀</span><span class="touch-caption">左移</span></button>
+        <button id="touchRight" class="touch-button" type="button" aria-label="向右移动"><span class="touch-glyph">▶</span><span class="touch-caption">右移</span></button>
+        <button id="touchJump" class="touch-button jump-button" type="button" aria-label="跳跃或悬浮"><span class="touch-glyph">▲</span><span class="touch-caption">跃起</span></button>
+      </div>
+      <div class="touch-cluster action-cluster" aria-label="战斗与魔杖">
+        <button id="touchEdit" class="touch-button utility-touch" type="button" aria-label="打开编辑台"><span class="touch-glyph">✎</span><span class="touch-caption">编辑</span></button>
+        <button id="touchWand" class="touch-button utility-touch" type="button" aria-label="切换魔杖"><span class="touch-glyph">↹</span><span class="touch-caption">换杖</span></button>
+        <button id="touchKick" class="touch-button utility-touch" type="button" aria-label="踢击"><span class="touch-glyph">✦</span><span class="touch-caption">踢击</span></button>
+        <button id="touchFire" class="touch-button fire-button" type="button" aria-label="施放法术"><span class="touch-glyph">✹</span><span class="touch-caption">施法</span></button>
+      </div>
+    </div>
+
+    <section id="title" class="overlay title-screen" aria-labelledby="titleHeading">
+      <div class="overlay-card title-card">
+        <div class="card-corner corner-tl" aria-hidden="true"></div>
+        <div class="card-corner corner-tr" aria-hidden="true"></div>
+        <div class="card-corner corner-bl" aria-hidden="true"></div>
+        <div class="card-corner corner-br" aria-hidden="true"></div>
+        <p class="eyebrow"><span class="eyebrow-rule" aria-hidden="true"></span>地下炼金档案 · 第七次沉降<span class="eyebrow-rule" aria-hidden="true"></span></p>
+        <div class="title-mark" aria-hidden="true"><span>✦</span></div>
+        <h1 id="titleHeading" aria-label="烬隙 / ASHFALL"><span class="title-cn">烬隙</span> <span class="title-slash">/</span> <span class="title-en">ASHFALL</span></h1>
+        <p class="title-deck">黑暗不是尽头。每一种材料都在等待你的下一道法术。</p>
+        <div class="title-divider" aria-hidden="true"><span></span><b>◆</b><span></span></div>
+        <ol class="how-to" aria-label="玩法说明">
+          <li><b>下潜</b><span>沿着裂隙深入，越深越危险。</span></li>
+          <li><b>炼金</b><span>让火、水、毒与尘土相遇。</span></li>
+          <li><b>组杖</b><span>把法术拖入槽位，改写它的轨迹。</span></li>
+          <li><b>活着</b><span>提灯会熄灭，死亡会留下名字。</span></li>
+        </ol>
+        <div class="title-actions">
+          <button id="startBtn" class="primary-button primary" type="button">点亮提灯 · 开始下潜</button>
+          <span class="title-note">方向键 / WASD · 鼠标瞄准 · E 编辑</span>
+        </div>
+      </div>
     </section>
-    <section id="dead" class="overlay hide"><div class="card"><h1>你已化为尘埃</h1><h2 id="deadReason">死亡是学习的一部分。</h2><p id="runStats"></p><div class="row"><button id="restartBtn" class="primary">再来一次</button></div></div></section>
-    <section id="win" class="overlay hide"><div class="card"><h1>深渊被点亮</h1><h2>你击碎了终焉之眼</h2><p>世界没有被修复，但你已经掌握了它的反应规则。</p><div class="row"><button id="winBtn" class="primary">再次深入</button></div></div></section>
-    <section id="wandPanel" class="hide"></section>
-    <section id="perkPanel" class="hide"></section>
-    <div class="touch"><button id="leftBtn" class="left">◀</button><button id="rightBtn" class="right">▶</button><button id="jumpBtn" class="jump">▲</button><button id="fireBtn" class="fire">✦</button><button id="wandBtn" class="wand">换杖</button></div>
+
+    <section id="death" class="overlay death-screen hidden hide" role="dialog" aria-modal="true" aria-label="远征结算" aria-labelledby="deathCause">
+      <div class="overlay-card death-card">
+        <div class="card-corner corner-tl" aria-hidden="true"></div>
+        <div class="card-corner corner-tr" aria-hidden="true"></div>
+        <div class="death-emblem" aria-hidden="true">
+          <div class="death-skull">
+            <i class="skull-eye skull-eye-left"></i>
+            <i class="skull-eye skull-eye-right"></i>
+            <i class="skull-nose"></i>
+            <i class="skull-crack"></i>
+            <i class="skull-jaw"></i>
+          </div>
+          <span class="death-spark spark-a"></span>
+          <span class="death-spark spark-b"></span>
+          <span class="death-spark spark-c"></span>
+        </div>
+        <p class="eyebrow danger-eyebrow">远征记录 · 终止</p>
+        <h2 id="deathCause">你的余烬在此熄灭</h2>
+        <p id="deathStats" class="death-stats">深入 0m · 击败 0 个生物 · 携带 0 金币</p>
+        <div class="death-rule" aria-hidden="true"></div>
+        <button id="restartBtn" class="primary-button primary" type="button">重新点燃提灯</button>
+      </div>
+    </section>
+
+    <section id="victory" class="overlay victory-screen hidden hide" role="dialog" aria-modal="true" aria-label="通关结算" aria-labelledby="victoryHeading">
+      <div class="overlay-card victory-card">
+        <div class="victory-sigil" aria-hidden="true"><span></span><i></i></div>
+        <p class="eyebrow">档案完结 · 余光尚存</p>
+        <h2 id="victoryHeading">你穿过了烬隙</h2>
+        <p class="victory-copy">深渊没有变轻，但你带回了火种。</p>
+        <div class="victory-stats" aria-label="通关统计"><span>地牢已照亮</span><b>ASHFALL / CLEAR</b></div>
+        <button id="restartVictoryBtn" class="primary-button primary" type="button">再次深入</button>
+      </div>
+    </section>
+
+    <section id="wandEditor" class="panel wand-editor-panel hidden hide" role="dialog" aria-modal="true" aria-label="魔杖编辑台" aria-labelledby="wandEditorHeading">
+      <div class="panel-surface">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">炼金工坊 · WAND FORGE</p>
+            <h2 id="wandEditorHeading">魔杖编辑台</h2>
+          </div>
+          <button id="closeEditor" class="close-button" type="button" aria-label="关闭魔杖编辑台">×</button>
+        </div>
+        <div class="js-render-target" data-render-target="wand-editor"></div>
+      </div>
+    </section>
+
+    <section id="perkPanel" class="panel perk-panel hidden hide" role="dialog" aria-modal="true" aria-label="选择祝福" aria-labelledby="perkHeading">
+      <div class="panel-surface">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">圣山回响 · HOLY MOUNTAIN</p>
+            <h2 id="perkHeading">选择一项祝福</h2>
+          </div>
+        </div>
+        <div class="js-render-target" data-render-target="perks"></div>
+      </div>
+    </section>
+
+    <section id="pickupPanel" class="panel pickup-panel hidden hide" role="dialog" aria-modal="true" aria-label="拾取物" aria-labelledby="pickupHeading">
+      <div class="panel-surface">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">残骸记录 · SALVAGE</p>
+            <h2 id="pickupHeading">拾取物</h2>
+          </div>
+        </div>
+        <div class="js-render-target" data-render-target="pickups"></div>
+      </div>
+    </section>
+
+    <section id="helpPanel" class="panel help-panel hidden hide" role="dialog" aria-modal="true" aria-label="操作与炼金手册" aria-labelledby="helpHeading">
+      <div class="panel-surface help-surface">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">手册 · FIELD NOTES</p>
+            <h2 id="helpHeading">操作与炼金</h2>
+          </div>
+          <button id="closeHelp" class="close-button" type="button" aria-label="关闭操作说明">×</button>
+        </div>
+        <div class="help-grid">
+          <div class="help-block">
+            <h3>移动</h3>
+            <p><kbd>A</kbd><kbd>D</kbd> / <kbd>←</kbd><kbd>→</kbd> 行走<br /><kbd>W</kbd> / <kbd>空格</kbd> 跳跃，按住可悬浮</p>
+          </div>
+          <div class="help-block">
+            <h3>战斗</h3>
+            <p>鼠标瞄准，按住左键施法。<br /><kbd>1</kbd>—<kbd>4</kbd> 切换魔杖，<kbd>E</kbd> 编辑。</p>
+          </div>
+          <div class="help-block">
+            <h3>触屏</h3>
+            <p>左侧移动，右侧施法；<br />编辑与踢击按钮位于右下方。</p>
+          </div>
+          <div class="help-block">
+            <h3>提示</h3>
+            <p>火焰会点燃可燃物，水会让熔岩凝成岩石。把法术放进正确槽位，实验才算开始。</p>
+          </div>
+        </div>
+        <p class="help-footnote">所有内容均为本地 Canvas 绘制 · 无外部素材</p>
+      </div>
+    </section>
+
+    <div id="bootError" class="boot-error hidden hide" role="alert" aria-live="assertive"></div>
   </main>
   <script src="game.js"></script>
 </body>
