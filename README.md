@@ -1,8 +1,8 @@
 # NOITA AI ARENA · Autonomous SWE Agent Benchmark
 
-[![Online Arena](https://img.shields.io/badge/Live_Arena-noita.myai1010.top-amber?style=for-the-badge&logo=google-chrome&logoColor=white)](https://noita.myai1010.top/)
-[![PRs Welcome](https://img.shields.io/badge/Pull_Requests-10_Models-blue?style=for-the-badge&logo=github)](https://github.com/JerryLiu369/noita-benchmark/pulls)
-[![Zero Build](https://img.shields.io/badge/Stack-Vanilla_JS_%2B_Canvas_2D-emerald?style=for-the-badge)](https://noita.myai1010.top/)
+[![Online Arena](https://img.shields.io/badge/Live_Arena-GitHub_Pages-amber?style=for-the-badge&logo=google-chrome&logoColor=white)](https://jerryliu369.github.io/noita-benchmark/)
+[![PRs Welcome](https://img.shields.io/badge/Pull_Requests-12_Models-blue?style=for-the-badge&logo=github)](https://github.com/JerryLiu369/noita-benchmark/pulls)
+[![Zero Build](https://img.shields.io/badge/Stack-Vanilla_JS_%2B_Canvas_2D-emerald?style=for-the-badge)](https://jerryliu369.github.io/noita-benchmark/)
 
 > **全自主大模型编程长跑基准评测**：评测前沿大语言模型与 Coding Agents 在「可破坏像素物理 + 炼金化学反应 + 径向动态光照 + 无头真机实测」极高复杂度要求下的自主架构设计、多轮工程实现与闭环验证能力。
 
@@ -12,7 +12,7 @@
 
 所有参赛模型在独立沙盒中自主运行生成的完整游戏产物，均已在云端全量部署上线：
 
-👉 **官方对决擂台**：**[https://noita.myai1010.top/](https://noita.myai1010.top/)**
+👉 **官方对决擂台**：**[https://jerryliu369.github.io/noita-benchmark/](https://jerryliu369.github.io/noita-benchmark/)**
 
 无需任何本地环境，点击即可直接在浏览器中秒开试玩各个模型生成的独立完整作品！
 
@@ -20,20 +20,23 @@
 
 ## 🏆 参赛模型与 Pull Requests 成果总览
 
-本基准共汇聚了来自 **Anthropic、OpenAI、DeepSeek、StepFun (阶跃星辰)、Xiaomi MiMo、Google、开源贡献者，以及来自 LM Arena 社区盲测对决** 的 10 款前沿模型产物。所有模型的独立分支与实现细节均已通过 Pull Request 提交：
+本基准共汇聚了来自 **Anthropic、OpenAI、DeepSeek、StepFun (阶跃星辰)、Xiaomi MiMo、Google、开源贡献者，以及来自 LM Arena 社区盲测对决** 的 12 款前沿模型产物。所有模型的独立分支与实现细节均已通过 Pull Request 提交：
 
 | 排名 / 阵营 | 参赛模型 | 作品名称 | 线上直达试玩 | 对应 PR | 总 Tokens | Cache 命中率 | 官方折算总价 | 核心技术亮点 |
 |:---|:---|:---|:---|:---|:---|:---:|:---:|:---:|:---|
-| 👑 **标杆旗舰** | **GPT-6-Astra** | **《深井余烬》** <br>`EMBER DEEP` | [▶ 试玩 Astra](https://noita.myai1010.top/astra/) | [#3](https://github.com/JerryLiu369/noita-benchmark/pull/3) | 1,465 万 | 92.2% | ~$30.58 USD | 首创 38 种材料分层、热力传导、法杖连锁组装、动态径向洞穴光晕 |
-| 👑 **智力巅峰** | **Claude-Opus-5.5** | **《余烬深渊》** <br>`EMBERDEEP` | [▶ 试玩 Opus 5.5](https://noita.myai1010.top/opus55/) | [#10](https://github.com/JerryLiu369/noita-benchmark/pull/10) | 5,591.7 万 | 94.5% | $68.38 USD <br>(约 ¥471.82) | 20+ 种材料物理、法杖时序连锁、24 种子洪水连通性校验、150s 真机自动下潜 |
-| 🛡️ **盲测绝杀** | **Arena 2** <br>*(LM Arena 盲测选手)* | **《余烬之下》** <br>`EMBER BELOW` | [▶ 试玩 Arena 2](https://noita.myai1010.top/arena-2/) | [#2](https://github.com/JerryLiu369/noita-benchmark/pull/2) | — | — | 盲测对决 | 48 项 Playwright 全绿，材料流体极其细腻，空间探索与法杖连击超群 |
-| 🌟 **求索巨构** | **DeepSeek-V4.1-Flash** | **《求索深渊》** <br>`DEEP CHASM` | [▶ 试玩 DS41](https://noita.myai1010.top/ds41/) | [#4](https://github.com/JerryLiu369/noita-benchmark/pull/4) | 6,943.5 万 | 98.7% | ¥8.27 <br>(~$1.20) | **47 种材料（全场之最）**，4000 行 6 模块分治拼装，超长程流体压测 |
-| ✨ **阶跃旗舰** | **Step-5-Preview** | **《阶跃炼金》** <br>`STEP5 ALCHEMIST` | [▶ 试玩 Step5](https://noita.myai1010.top/step5/) | [#5](https://github.com/JerryLiu369/noita-benchmark/pull/5) | 3,555.3 万 | 93.6% | ¥30.06 <br>(~$4.36) | 36 种材料，14 弹体 14 修饰，烧/溺/压/毒/砍 5 大死因全真机捕获 |
-| 🔮 **谷歌极速** | **Gemini-3.8-Flash** | **《双子炼金》** <br>`GEMINI ALCHEMIST` | [▶ 试玩 Gemini](https://noita.myai1010.top/gemini/) | [#9](https://github.com/JerryLiu369/noita-benchmark/pull/9) | 1,161.7 万 | 72.0% | ¥6.03 <br>(~$0.87) | 首创深渊巨蠕虫实时啃穿岩壁、终焉之眼三阶段 Boss 战、原生合成音效 |
-| 💎 **小米旗舰** | **MiMo-V2.6-Pro** | **《像素炼金地牢》** <br>`PIXEL ALCHEMIST PRO` | [▶ 试玩 MiMo Pro](https://noita.myai1010.top/mimo-pro/) | [#6](https://github.com/JerryLiu369/noita-benchmark/pull/6) | 3,470 万 | 95.8% | ¥5.79 <br>(~$0.84) | 21/21 单测全绿，180 秒无头下井真人存活模拟，实机截图光照微调 |
-| ⚡ **开源极速** | **MiMo-V2.6-Flash** | **《像素炼金》** <br>`PIXEL ALCHEMIST` | [▶ 试玩 MiMo Flash](https://noita.myai1010.top/mimo-flash/) | [#7](https://github.com/JerryLiu369/noita-benchmark/pull/7) | 1,794 万 | 96.2% | ¥1.25 <br>(~$0.18) | 34 种元胞物理材料，110KB 极速纯原生引擎，自建 CDP 自动化通关 |
-| ⚡ **开源贡献** | **Muse-Spark-1.3** | **《灰烬竖井》** <br>`ASHFALL` | [▶ 试玩 Muse](https://noita.myai1010.top/muse/) | [#8](https://github.com/JerryLiu369/noita-benchmark/pull/8) | 614.3 万 | 97.1% | ¥4.10 <br>(~$0.59) | 26 种材料，牌库式法杖结算，6 层地牢 + 5 圣所祝福，11 项单测全绿 |
-| 🗡️ **盲测先锋** | **Arena 1** <br>*(匿名模型 A)* | **《烬渊》** <br>`EMBERDEEP` | [▶ 试玩 Arena 1](https://noita.myai1010.top/arena-1/) | [#1](https://github.com/JerryLiu369/noita-benchmark/pull/1) | — | — | 盲测对决 | 480×270 复古点阵射击，30 种材质 32 项手搓规则，节奏紧凑凌厉 |
+| 🔥 **满血新版** | **DeepSeek-V4.1-Flash-1017** | **《深岩秘术》** <br>`DEEPROCK ARCANA` | [▶ 试玩 DS1017](https://jerryliu369.github.io/noita-benchmark/ds1017/) | [#12](https://github.com/JerryLiu369/noita-benchmark/pull/12) | 4,342.1 万 | 98.8% | ¥2.58 <br>(~$0.36) | 官方 10/17 满血新版，4,564 行单文件纯手搓，34 种材料密度分层，72 射线径向光照，57 轮无头 Chrome CDP 实测全绿 |
+
+| 👑 **标杆旗舰** | **GPT-6-Astra** | **《深井余烬》** <br>`EMBER DEEP` | [▶ 试玩 Astra](https://jerryliu369.github.io/noita-benchmark/astra/) | [#3](https://github.com/JerryLiu369/noita-benchmark/pull/3) | 1,465 万 | 92.2% | ~$30.58 USD | 首创 38 种材料分层、热力传导、法杖连锁组装、动态径向洞穴光晕 |
+| 👑 **智力巅峰** | **Claude-Opus-5.5** | **《余烬深渊》** <br>`EMBERDEEP` | [▶ 试玩 Opus 5.5](https://jerryliu369.github.io/noita-benchmark/opus55/) | [#10](https://github.com/JerryLiu369/noita-benchmark/pull/10) | 5,591.7 万 | 94.5% | $68.38 USD <br>(约 ¥471.82) | 20+ 种材料物理、法杖时序连锁、24 种子洪水连通性校验、150s 真机自动下潜 |
+| 🛡️ **盲测绝杀** | **Arena 2** <br>*(LM Arena 盲测选手)* | **《余烬之下》** <br>`EMBER BELOW` | [▶ 试玩 Arena 2](https://jerryliu369.github.io/noita-benchmark/arena-2/) | [#2](https://github.com/JerryLiu369/noita-benchmark/pull/2) | — | — | 盲测对决 | 48 项 Playwright 全绿，材料流体极其细腻，空间探索与法杖连击超群 |
+| 🌟 **求索巨构** | **DeepSeek-V4.1-Flash** | **《求索深渊》** <br>`DEEP CHASM` | [▶ 试玩 DS41](https://jerryliu369.github.io/noita-benchmark/ds41/) | [#4](https://github.com/JerryLiu369/noita-benchmark/pull/4) | 6,943.5 万 | 98.7% | ¥8.27 <br>(~$1.20) | **47 种材料（全场之最）**，4000 行 6 模块分治拼装，超长程流体压测 |
+| ✨ **阶跃旗舰** | **Step-5-Preview** | **《阶跃炼金》** <br>`STEP5 ALCHEMIST` | [▶ 试玩 Step5](https://jerryliu369.github.io/noita-benchmark/step5/) | [#5](https://github.com/JerryLiu369/noita-benchmark/pull/5) | 3,555.3 万 | 93.6% | ¥30.06 <br>(~$4.36) | 36 种材料，14 弹体 14 修饰，烧/溺/压/毒/砍 5 大死因全真机捕获 |
+| 🔮 **谷歌极速** | **Gemini-3.8-Flash** | **《双子炼金》** <br>`GEMINI ALCHEMIST` | [▶ 试玩 Gemini](https://jerryliu369.github.io/noita-benchmark/gemini/) | [#9](https://github.com/JerryLiu369/noita-benchmark/pull/9) | 1,161.7 万 | 72.0% | ¥6.03 <br>(~$0.87) | 首创深渊巨蠕虫实时啃穿岩壁、终焉之眼三阶段 Boss 战、原生合成音效 |
+| 💎 **小米旗舰** | **MiMo-V2.6-Pro** | **《像素炼金地牢》** <br>`PIXEL ALCHEMIST PRO` | [▶ 试玩 MiMo Pro](https://jerryliu369.github.io/noita-benchmark/mimo-pro/) | [#6](https://github.com/JerryLiu369/noita-benchmark/pull/6) | 3,470 万 | 95.8% | ¥5.79 <br>(~$0.84) | 21/21 单测全绿，180 秒无头下井真人存活模拟，实机截图光照微调 |
+| ⚡ **开源极速** | **MiMo-V2.6-Flash** | **《像素炼金》** <br>`PIXEL ALCHEMIST` | [▶ 试玩 MiMo Flash](https://jerryliu369.github.io/noita-benchmark/mimo-flash/) | [#7](https://github.com/JerryLiu369/noita-benchmark/pull/7) | 1,794 万 | 96.2% | ¥1.25 <br>(~$0.18) | 34 种元胞物理材料，110KB 极速纯原生引擎，自建 CDP 自动化通关 |
+| ⚡ **开源贡献** | **Muse-Spark-1.3** | **《灰烬竖井》** <br>`ASHFALL` | [▶ 试玩 Muse](https://jerryliu369.github.io/noita-benchmark/muse/) | [#8](https://github.com/JerryLiu369/noita-benchmark/pull/8) | 614.3 万 | 97.1% | ¥4.10 <br>(~$0.59) | 26 种材料，牌库式法杖结算，6 层地牢 + 5 圣所祝福，11 项单测全绿 |
+| 🐰 **社区开源** | **Space Bunny Free** | **《烬隙》** <br>`ASHFALL FREE` | [▶ 试玩 Space Bunny](https://jerryliu369.github.io/noita-benchmark/space-bunny/) | [#11](https://github.com/JerryLiu369/noita-benchmark/pull/11) | 开源免费 | 100% | ¥0.00 | 社区开源轻量化重构方案，保留最纯粹的液体与固体元胞物理交互 |
+| 🗡️ **盲测先锋** | **Arena 1** <br>*(匿名模型 A)* | **《烬渊》** <br>`EMBERDEEP` | [▶ 试玩 Arena 1](https://jerryliu369.github.io/noita-benchmark/arena-1/) | [#1](https://github.com/JerryLiu369/noita-benchmark/pull/1) | — | — | 盲测对决 | 480×270 复古点阵射击，30 种材质 32 项手搓规则，节奏紧凑凌厉 |
 
 ---
 

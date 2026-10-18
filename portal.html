@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>NOITA AI ARENA · 像素物理大模型自主编程擂台</title>
+  <style>
+    :root {
+      --bg: #07090e;
+      --card-bg: #0e121d;
+      --card-hover: #151b2b;
+      --border: #242b3d;
+      --border-highlight: #414d6b;
+      --text: #e6ebf5;
+      --text-muted: #8a94a6;
+      --gold: #f5d061;
+      --gold-dark: #b89127;
+      --gold-glow: rgba(245, 208, 97, 0.2);
+      --cyan: #5ce1e6;
+      --cyan-glow: rgba(92, 225, 230, 0.2);
+      --red: #ff5c5c;
+      --purple: #b388ff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, monospace;
+      line-height: 1.5;
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(30, 42, 69, 0.5) 0%, transparent 60%),
+        radial-gradient(circle at 10% 40%, rgba(245, 208, 97, 0.04) 0%, transparent 40%),
+        radial-gradient(circle at 90% 70%, rgba(92, 225, 230, 0.04) 0%, transparent 40%);
+      background-attachment: fixed;
+    }
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+    /* Header */
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .badge-bar {
+      display: inline-flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      border: 1px solid var(--border);
+      background: rgba(14, 18, 29, 0.8);
+      backdrop-filter: blur(8px);
+      text-decoration: none;
+      color: var(--text-muted);
+    }
+    .badge.gold { border-color: var(--gold-dark); color: var(--gold); }
+    .badge.cyan { border-color: #2a6f79; color: var(--cyan); }
+    h1 {
+      font-size: clamp(28px, 5vw, 44px);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: #fff;
+      text-shadow: 0 0 30px rgba(245, 208, 97, 0.3);
+      margin-bottom: 12px;
+    }
+    h1 span { color: var(--gold); }
+    .subtitle {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 760px;
+      margin: 0 auto 24px;
+    }
+    .metrics-summary {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+      padding: 16px;
+      background: rgba(14, 18, 29, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+      max-width: 860px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .metric-item {
+      text-align: center;
+    }
+    .metric-val {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gold);
+      font-family: monospace;
+    }
+    .metric-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 24px;
+      margin-top: 36px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .card:hover {
+      background: var(--card-hover);
+      border-color: var(--border-highlight);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    }
+    .card.featured {
+      border-color: var(--gold-dark);
+      box-shadow: 0 0 20px rgba(245, 208, 97, 0.08);
+    }
+    .card.featured:hover {
+      border-color: var(--gold);
+      box-shadow: 0 12px 36px rgba(245, 208, 97, 0.18);
+    }
+    .card-tag {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .tag-gold { background: rgba(245, 208, 97, 0.15); color: var(--gold); border: 1px solid var(--gold-dark); }
+    .tag-cyan { background: rgba(92, 225, 230, 0.15); color: var(--cyan); border: 1px solid #2a6f79; }
+    .tag-purple { background: rgba(179, 136, 255, 0.15); color: var(--purple); border: 1px solid #6b4ba3; }
+    .tag-muted { background: rgba(138, 148, 166, 0.15); color: var(--text-muted); border: 1px solid var(--border); }
+
+    .model-header {
+      margin-bottom: 14px;
+      padding-right: 70px;
+    }
+    .model-name {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-family: monospace;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+    .game-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .game-en {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+      letter-spacing: 0.05em;
+    }
+
+    .features {
+      font-size: 13px;
+      color: #cbd5e1;
+      margin-bottom: 18px;
+      line-height: 1.6;
+      flex-grow: 1;
+    }
+    .feature-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .ftag {
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #94a3b8;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      padding: 10px 12px;
+      background: rgba(0, 0, 0, 0.35);
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      margin-bottom: 18px;
+      font-size: 11px;
+    }
+    .stats-col strong {
+      display: block;
+      color: var(--gold);
+      font-family: monospace;
+      font-size: 13px;
+    }
+    .stats-col span {
+      color: var(--text-muted);
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .btn {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .btn-play {
+      background: linear-gradient(135deg, var(--gold) 0%, #d4a72c 100%);
+      color: #0d1017;
+      box-shadow: 0 4px 14px var(--gold-glow);
+    }
+    .btn-play:hover {
+      filter: brightness(1.1);
+      box-shadow: 0 6px 20px rgba(245, 208, 97, 0.35);
+      transform: translateY(-1px);
+    }
+    .btn-sub {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      color: var(--text);
+      max-width: 80px;
+    }
+    .btn-sub:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: var(--border-highlight);
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 60px;
+      padding-top: 30px;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    footer a { color: var(--gold); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 640px) {
+      .grid { grid-template-columns: 1fr; }
+      .metrics-summary { flex-direction: column; gap: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge-bar">
+        <span class="badge gold">🎮 NOITA AI ARENA</span>
+        <span class="badge cyan">⚡ 100% 纯前端零构建</span>
+        <a class="badge" href="https://github.com/JerryLiu369/noita-benchmark" target="_blank">⭐ GitHub 源码</a>
+      </div>
+      <h1><span>NOITA</span> AI 擂台对决</h1>
+      <p class="subtitle">全自主大模型长跑编程基准：在「可破坏像素物理 + 炼金化学反应 + 径向动态光照 + 无头真机实测」的严苛要求下，12 款前沿大模型纯手搓原生 Canvas 物理引擎全面竞技。</p>
+      
+      <div class="metrics-summary">
+        <div class="metric-item">
+          <div class="metric-val">12</div>
+          <div class="metric-label">参赛模型独立全作</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-val">0 npm</div>
+          <div class="metric-label">纯原生 HTML5 / WebAudio</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-val">34 ~ 47</div>
+          <div class="metric-label">物理流体材料体系</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-val">2.58 CNY</div>
+          <div class="metric-label">1017新版极限成本</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- DeepSeek 1017 (NEW) -->
+      <div class="card featured">
+        <span class="card-tag tag-gold">🔥 1017 满血新版</span>
+        <div class="model-header">
+          <div class="model-name">DeepSeek-V4.1-Flash-1017</div>
+          <div class="game-title">《深岩秘术》 <span class="game-en">DEEPROCK ARCANA</span></div>
+        </div>
+        <div class="features">
+          官方 10/17 架构最新模型在绝对双盲沙盒下自主全量实现。单文件纯原生手搓 4,564 行，34 种材料密度分层、72 射线径向光照、7 层深渊直达 2404m，57 轮无头 Chrome CDP 实测全绿。
+          <div class="feature-tags">
+            <span class="ftag">4,564 行原生 JS</span>
+            <span class="ftag">34 种物理材料</span>
+            <span class="ftag">72 射线光照</span>
+            <span class="ftag">2404m 深渊</span>
+            <span class="ftag">CDP 自动化通关</span>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stats-col"><strong>4,342 万</strong><span>总 Tokens</span></div>
+          <div class="stats-col"><strong>98.83%</strong><span>KV 缓存命中</span></div>
+          <div class="stats-col"><strong>¥2.58</strong><span>折算总成本</span></div>
+        </div>
+        <div class="card-actions">
+          <a class="btn btn-play" href="./ds1017/">▶ 立即试玩</a>
+          <a class="btn btn-sub" href="https://github.com/JerryLiu369/noita-benchmark/pull/12" target="_blank">PR #12</a>
+        </div>
+      </div>
+
+      <!-- GPT-6-Astra -->
+      <div class="card featured">
+        <span class="card-tag tag-gold">👑 标杆旗舰</span>
+        <div class="model-header">
+          <div class="model-name">GPT-6-Astra (1M Max)</div>
+          <div class="game-title">《深井余烬》 <span class="game-en">EMBER DEEP</span></div>
+        </div>
+        <div class="features">
+          全场架构标杆。首创 38 种材料分层、热力传导、法杖连锁时序组装、动态径向洞穴光晕与双阶段 Boss 战。
+          <div class="feature-tags">
+            <span class="ftag">38 种材料分层</span>
+            <span class="ftag">热力传导</span>
+            <span class="ftag">法杖时序连锁</span>
+            <span class="ftag">动态洞穴光晕</span>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stats-col"><strong>1,465 万</strong><span>总 Tokens</span></div>
+          <div class="stats-col"><strong>92.2%</strong><span>KV 缓存命中</span></div>
+          <div class="stats-col"><strong>~$30.58</strong><span>折算总成本</span></div>
+        </div>
+        <div class="card-actions">
+          <a class="btn btn-play" href="./astra/">▶ 立即试玩</a>
+          <a class="btn btn-sub" href="https://github.com/JerryLiu369/noita-benchmark/pull/3" target="_blank">PR #3</a>
+        </div>
+      </div>
+
+      <!-- Claude-Opus-5.5 -->
+      <div class="card featured">
+        <span class="card-tag tag-gold">👑 智力巅峰</span>
+        <div class="model-header">
+          <div class="model-name">Claude-Opus-5.5</div>
+          <div class="game-title">《余烬深渊》 <span class="game-en">EMBERDEEP</span></div>
+        </div>
+        <div class="features">
+          20+ 种流体与粉末物理、法杖时序连锁、24 种子洪水连通性校验、150 秒真机自动下潜探险验证。
+          <div class="feature-tags">
+            <span class="ftag">洪水算法连通性</span>
+            <span class="ftag">150s 自动下潜</span>
+            <span class="ftag">时序法杖</span>
+            <span class="ftag">高精度碰撞</span>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stats-col"><strong>5,591 万</strong><span>总 Tokens</span></div>
+          <div class="stats-col"><strong>94.5%</strong><span>KV 缓存命中</span></div>
+          <div class="stats-col"><strong>$68.38</strong><span>折算总成本</span></div>
+        </div>
+        <div class="card-actions">
+          <a class="btn btn-play" href="./opus55/">▶ 立即试玩</a>
+          <a class="btn btn-sub" href="https://github.com/JerryLiu369/noita-benchmark/pull/10" target="_blank">PR #10</a>
+        </div>
+      </div>
+
+      <!-- DeepSeek DS41 (0910) -->
+      <div class="card">
+        <span class="card-tag tag-cyan">🌟 求索巨构</span>
+        <div class="model-header">
+          <div class="model-name">DeepSeek-V4.1-Flash (老版)</div>
+          <div class="game-title">《求索深渊》 <span class="game-en">DEEP CHASM</span></div>
+        </div>
+        <div class="features">
+          全场最多 47 种物理材料！6 大模块分治拼装，长程高密度流体压测，极其震撼的材料元胞模拟。
+          <div class="feature-tags">
+            <span class="ftag">47 种材料(全场之最)</span>
+            <span class="ftag">6 模块分治拼装</span>
+            <span class="ftag">长程流体压测</span>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stats-col"><strong>6,943 万</strong><span>总 Tokens</span></div>
+          <div class="stats-col"><strong>98.7%</strong><span>KV 缓存命中</span></div>
+          <div class="stats-col"><strong>¥8.27</strong><span>折算总成本</span></div>
+        </div>
+        <div class="card-actions">
+          <a class="btn btn-play" href="./ds41/">▶ 立即试玩</a>
+          <a class="btn btn-sub" href="https://github.com/JerryLiu369/noita-benchmark/pull/4" target="_blank">PR #4</a>
+        </div>
+      </div>
+
+      <!-- Step-5-Preview -->
+      <div class="card">
+        <span class="card-tag tag-cyan">✨ 阶跃旗舰</span>
+        <div class="model-header">
+          <div class="model-name">Step-5-Preview</div>
+          <div class="game-title">《阶跃炼金》 <span class="game-en">STEP5 ALCHEMIST</span></div>
+        </div>
+        <div class="features">
+          36 种材料，14 投射物 + 14 修饰词，烧/溺/压/毒/砍 5 大死因全真机捕获，手感与反馈极佳。
+          <div class="feature-tags">
+            <span class="ftag">36 种材料</span>
+            <span class="ftag">14 弹体 14 修饰</span>
+            <span class="ftag">5 大死因全捕获</span>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stats-col"><strong>3,555 万</strong><span>总 Tokens</span></div>
+          <div class="stats-col"><strong>93.6%</strong><span>KV 缓存命中</span></div>
+          <div class="stats-col"><strong>¥30.06</strong><span>折算总成本</span></div>
+        </div>
+        <div class="card-actions">
+          <a class="btn btn-play" href="./step5/">▶ 立即试玩</a>
+          <a class="btn btn-sub" href="https://github.com/JerryLiu369/noita-benchmark/pull/5" target="_blank">PR #5</a>
+        </div>
+      </div>
+
+      <!-- Gemini-3.8-Flash -->
+      <div class="card">
+        <span class="card-tag tag-cyan">🔮 谷歌极速</span>
+        <div class="model-header">
+          <div class="model-name">Gemini-3.8-Flash</div>
+          <div class="game-title">《双子炼金》 <span class="game-en">GEMINI ALCHEMIST</span></div>
+        </div>
+        <div class="features">
+          首创深渊巨蠕虫啃穿岩壁机制！终焉之眼三阶段 Boss 战，零外链 WebAudio 原生合成音效。
+          <div class="feature-tags">
+            <span class="ftag">深渊巨蠕虫啃墙</span>
+            <span class="ftag">三阶段 Boss</span>
+            <span class="ftag">WebAudio 合成音效</span>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stats-col"><strong>1,161 万</strong><span>总 Tokens</span></div>
+          <div class="stats-col"><strong>72.0%</strong><span>KV 缓存命中</span></div>
+          <div class="stats-col"><strong>¥6.03</strong><span>折算总成本</span></div>
+        </div>
+        <div class="card-actions">
+          <a class="btn btn-play" href="./gemini/">▶ 立即试玩</a>
+          <a class="btn btn-sub" href="https://github.com/JerryLiu369/noita-benchmark/pull/9" target="_blank">PR #9</a>
+        </div>
+      </div>
+
+      <!-- MiMo-V2.6-Pro -->
+      <div class="card">
+        <span class="card-tag tag-purple">💎 小米旗舰</span>
+        <div class="model-header">
+          <div class="model-name">MiMo-V2.6-Pro</div>
+          <div class="game-title">《像素炼金地牢》 <span class="game-en">PIXEL PRO</span></div>
+        </div>
+        <div class="features">
+          21/21 项单测全绿，180 秒无头下井真人存活模拟，实机截图光照微调与极其扎实的物理交互。
+          <div class="feature-tags">
+            <span class="ftag">21/21 单测全绿</span>
+            <span class="ftag">180s 真人存活</span>
+            <span class="ftag">光照渲染精修</span>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stats-col"><strong>3,470 万</strong><span>总 Tokens</span></div>
+          <div class="stats-col"><strong>95.8%</strong><span>KV 缓存命中</span></div>
+          <div class="stats-col"><strong>¥5.79</strong><span>折算总成本</span></div>
+        </div>
+        <div class="card-actions">
+          <a class="btn btn-play" href="./mimo-pro/">▶ 立即试玩</a>
+          <a class="btn btn-sub" href="https://github.com/JerryLiu369/noita-benchmark/pull/6" target="_blank">PR #6</a>
+        </div>
+      </div>
+
+      <!-- MiMo-V2.6-Flash -->
+      <div class="card">
+        <span class="card-tag tag-purple">⚡ 小米极速</span>
+        <div class="model-header">
+          <div class="model-name">MiMo-V2.6-Flash</div>
+          <div class="game-title">《像素炼金》 <span class="game-en">PIXEL ALCHEMIST</span></div>
+        </div>
+        <div class="features">
+          34 种元胞物理材料，仅 110KB 极速纯原生引擎，自建 CDP 自动化通关脚本验证。
+          <div class="feature-tags">
+            <span class="ftag">110KB 极致轻量</span>
+            <span class="ftag">34 种元胞物理</span>
+            <span class="ftag">极速响应</span>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stats-col"><strong>1,794 万</strong><span>总 Tokens</span></div>
+          <div class="stats-col"><strong>96.2%</strong><span>KV 缓存命中</span></div>
+          <div class="stats-col"><strong>¥1.25</strong><span>折算总成本</span></div>
+        </div>
+        <div class="card-actions">
+          <a class="btn btn-play" href="./mimo-flash/">▶ 立即试玩</a>
+          <a class="btn btn-sub" href="https://github.com/JerryLiu369/noita-benchmark/pull/7" target="_blank">PR #7</a>
+        </div>
+      </div>
+
+      <!-- Muse-Spark-1.3 -->
+      <div class="card">
+        <span class="card-tag tag-muted">⚡ 开源极速</span>
+        <div class="model-header">
+          <div class="model-name">Muse-Spark-1.3</div>
+          <div class="game-title">《灰烬竖井》 <span class="game-en">ASHFALL</span></div>
+        </div>
+        <div class="features">
+          26 种材料，牌库式法杖结算机制，6 层纵深地牢 + 5 圣所祝福，11 项单元测试全绿。
+          <div class="feature-tags">
+            <span class="ftag">牌库式结算</span>
+            <span class="ftag">6 层地牢</span>
+            <span class="ftag">5 圣所祝福</span>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stats-col"><strong>614 万</strong><span>总 Tokens</span></div>
+          <div class="stats-col"><strong>97.1%</strong><span>KV 缓存命中</span></div>
+          <div class="stats-col"><strong>¥4.10</strong><span>折算总成本</span></div>
+        </div>
+        <div class="card-actions">
+          <a class="btn btn-play" href="./muse/">▶ 立即试玩</a>
+          <a class="btn btn-sub" href="https://github.com/JerryLiu369/noita-benchmark/pull/8" target="_blank">PR #8</a>
+        </div>
+      </div>
+
+      <!-- Space Bunny Free -->
+      <div class="card">
+        <span class="card-tag tag-muted">🐰 社区开源</span>
+        <div class="model-header">
+          <div class="model-name">Space Bunny Free</div>
+          <div class="game-title">《烬隙》 <span class="game-en">ASHFALL FREE</span></div>
+        </div>
+        <div class="features">
+          开源社区轻量化重构方案，极简快速起步，保留最纯粹的液体与固体元胞物理交互。
+          <div class="feature-tags">
+            <span class="ftag">社区轻量化</span>
+            <span class="ftag">极简流体</span>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stats-col"><strong>开源免费</strong><span>模型</span></div>
+          <div class="stats-col"><strong>100%</strong><span>纯静态</span></div>
+          <div class="stats-col"><strong>¥0.00</strong><span>折算总成本</span></div>
+        </div>
+        <div class="card-actions">
+          <a class="btn btn-play" href="./space-bunny/">▶ 立即试玩</a>
+          <a class="btn btn-sub" href="https://github.com/JerryLiu369/noita-benchmark/pull/11" target="_blank">PR #11</a>
+        </div>
+      </div>
+
+      <!-- Arena 2 -->
+      <div class="card">
+        <span class="card-tag tag-purple">🛡️ 盲测绝杀</span>
+        <div class="model-header">
+          <div class="model-name">Arena 2 (LM Arena)</div>
+          <div class="game-title">《余烬之下》 <span class="game-en">EMBER BELOW</span></div>
+        </div>
+        <div class="features">
+          48 项 Playwright 自动化测试全绿！材料流体极其细腻，空间探索与法杖连击手感超群。
+          <div class="feature-tags">
+            <span class="ftag">48 项测试全绿</span>
+            <span class="ftag">细腻流体</span>
+            <span class="ftag">爽快连击</span>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stats-col"><strong>盲测选手</strong><span>对决</span></div>
+          <div class="stats-col"><strong>48 测试</strong><span>Playwright</span></div>
+          <div class="stats-col"><strong>TOP 级</strong><span>流体细腻度</span></div>
+        </div>
+        <div class="card-actions">
+          <a class="btn btn-play" href="./arena-2/">▶ 立即试玩</a>
+          <a class="btn btn-sub" href="https://github.com/JerryLiu369/noita-benchmark/pull/2" target="_blank">PR #2</a>
+        </div>
+      </div>
+
+      <!-- Arena 1 -->
+      <div class="card">
+        <span class="card-tag tag-muted">🗡️ 盲测先锋</span>
+        <div class="model-header">
+          <div class="model-name">Arena 1 (LM Arena)</div>
+          <div class="game-title">《烬渊》 <span class="game-en">EMBERDEEP</span></div>
+        </div>
+        <div class="features">
+          480×270 复古点阵射击，30 种材质 32 项手搓规则，快节奏且凌厉的战斗反馈。
+          <div class="feature-tags">
+            <span class="ftag">复古点阵</span>
+            <span class="ftag">30 种材质</span>
+            <span class="ftag">凌厉战斗</span>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stats-col"><strong>盲测选手</strong><span>对决</span></div>
+          <div class="stats-col"><strong>30 材质</strong><span>手搓规则</span></div>
+          <div class="stats-col"><strong>快节奏</strong><span>街机动作</span></div>
+        </div>
+        <div class="card-actions">
+          <a class="btn btn-play" href="./arena-1/">▶ 立即试玩</a>
+          <a class="btn btn-sub" href="https://github.com/JerryLiu369/noita-benchmark/pull/1" target="_blank">PR #1</a>
+        </div>
+      </div>
+
+    </div>
+
+    <footer>
+      <p>NOITA AI ARENA · 100% Zero-Build Vanilla HTML5 Canvas & WebAudio · 纯前端零后端托管于 GitHub Pages</p>
+      <p style="margin-top: 8px;"><a href="./baseline/">▶ 试玩 Baseline 原始未修改基准原型</a> · <a href="https://github.com/JerryLiu369/noita-benchmark">开源仓库 JerryLiu369/noita-benchmark</a></p>
+    </footer>
+  </div>
+</body>
+</html>

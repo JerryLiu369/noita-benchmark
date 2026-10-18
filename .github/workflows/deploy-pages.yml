@@ -1,0 +1,73 @@
+name: Deploy Noita AI Arena to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Aggregate models and build portal
+        run: |
+          mkdir -p dist
+          # Copy baseline
+          mkdir -p dist/baseline
+          cp index.html game.js dist/baseline/ 2>/dev/null || true
+
+          # Extract each model branch into its own subdirectory
+          MODELS=(
+            "bench/deepseek-v4.1-flash-1017:ds1017"
+            "bench/gpt-6-astra:astra"
+            "bench/claude-opus-5.5:opus55"
+            "bench/deepseek-v4.1-flash:ds41"
+            "bench/step-5-preview:step5"
+            "bench/gemini-3.8-flash:gemini"
+            "bench/mimo-v2.6-pro:mimo-pro"
+            "bench/mimo-v2.6-flash:mimo-flash"
+            "bench/muse-spark-1.3:muse"
+            "bench/space-bunny-free:space-bunny"
+            "arena/01a0c2c8-noita-benchmark:arena-1"
+            "arena/01a0c2c9-noita-benchmark:arena-2"
+          )
+
+          for ITEM in "${MODELS[@]}"; do
+            BRANCH="${ITEM%%:*}"
+            DIR="${ITEM##*:}"
+            echo "Extracting $BRANCH into dist/$DIR..."
+            mkdir -p "dist/$DIR"
+            git archive "origin/$BRANCH" | tar -x -C "dist/$DIR"
+          done
+
+          # Use portal.html as the root entrance
+          cp portal.html dist/index.html
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'dist'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
