@@ -1,48 +1,135 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>PIXEL ALCHEMIST · Noita 风格像素物理冒险</title>
-  <style>
-    :root{--bg:#080910;--ink:#f2eedc;--muted:#9da1b0;--panel:#111421ee;--line:#363b52;--gold:#f2c85b;--accent:#72d5ff}
-    *{box-sizing:border-box} html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-    body{display:grid;place-items:center;touch-action:none}
-    #app{position:relative;width:min(100vw,1000px);height:min(100vh,720px);display:grid;place-items:center}
-    canvas{image-rendering:pixelated;image-rendering:crisp-edges;width:100%;height:100%;background:#05060b;box-shadow:0 0 0 1px #303447,0 20px 80px #000;cursor:crosshair}
-    #hud{position:absolute;inset:0;pointer-events:none;font-size:12px;text-shadow:2px 2px #000}
-    #topbar{position:absolute;left:12px;right:12px;top:10px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
-    .cluster{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.meter{width:122px;height:10px;border:1px solid #697188;background:#151927;box-shadow:inset 0 0 0 2px #070910}.meter i{display:block;height:100%;width:50%;transition:width .1s}.hp i{background:#d95760}.mana i{background:#4da9e8}.hover i{background:#c7b75f}
-    #depth{color:#c9cedd}.tag{border:1px solid #4a516d;padding:3px 6px;background:#0e1120cc;color:#d9deed}
-    #wandHud{position:absolute;left:12px;bottom:12px;display:flex;gap:5px;align-items:end}.wand-chip{min-width:76px;padding:5px 6px;border:1px solid #4b536e;background:#0d101bcc;color:#bbc3d9;font-size:10px}.wand-chip.active{border-color:var(--gold);color:#fff2b8;box-shadow:0 0 12px #c59d3433}.wand-chip b{display:block;color:#fff;font-size:11px;margin-bottom:2px}.slotdots{display:flex;gap:2px}.slotdots s{display:block;width:8px;height:8px;background:#555b76;text-decoration:none}.slotdots s.on{background:#7ad8ff}
-    #hint{position:absolute;right:12px;bottom:12px;color:#d2d5e0;text-align:right;line-height:1.5;opacity:.9}.kbd{border:1px solid #616984;background:#151a2a;padding:1px 4px;color:#fff}
-    .overlay{position:absolute;inset:0;display:grid;place-items:center;background:#05060bd9;z-index:4}.overlay.hide{display:none}.card{width:min(92%,640px);padding:28px 30px;border:1px solid #59617d;background:linear-gradient(160deg,#15192aee,#0a0c15ee);box-shadow:0 16px 80px #000}.card h1{margin:0 0 8px;letter-spacing:.12em;font-size:clamp(22px,4vw,42px);color:#f7d974}.card h2{margin:0 0 16px;color:#a6dfff;font-size:14px;font-weight:400}.card p{color:#c6cbd7;line-height:1.6}.card small{color:#8e95a8}.primary{border:1px solid #ddbb50;background:#8f6b1d;color:#fff3b5;padding:11px 20px;font:inherit;cursor:pointer}.primary:hover{background:#b58a27}.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
-    #wandPanel,#perkPanel{position:absolute;z-index:5;left:50%;top:50%;transform:translate(-50%,-50%);width:min(94%,720px);max-height:90%;overflow:auto;border:1px solid #68718e;background:#0a0d18f5;box-shadow:0 20px 80px #000;padding:18px}.panel-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;color:#f3d671}.panel-title span{color:#96a0b7;font-size:11px}.wand-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}.wand-card{border:1px solid #394158;padding:10px;background:#111625}.wand-card.active{border-color:#d9b84e}.wand-card h3{margin:0 0 6px;font-size:12px;color:#f5e7a1}.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:3px;color:#99a5bf;font-size:10px;margin-bottom:8px}.spell-row{display:flex;gap:4px;flex-wrap:wrap}.spell-btn{min-width:50px;border:1px solid #4a5370;background:#1a2031;color:#e7ebf2;padding:4px;font:inherit;font-size:10px;cursor:pointer}.spell-btn.selected{outline:1px solid #f4d266;background:#3c3519}.perk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.perk{border:1px solid #4e5670;background:#121829;padding:13px;cursor:pointer;color:#e4e8f4;min-height:120px}.perk:hover{border-color:#f4cf60}.perk b{display:block;color:#f5d36c;margin-bottom:8px}.perk small{color:#acb4ca;line-height:1.45}
-    #toast{position:absolute;left:50%;top:22%;transform:translateX(-50%);padding:8px 14px;border:1px solid #c8ad58;background:#151828e8;color:#fff0a9;opacity:0;transition:opacity .2s;pointer-events:none}.touch{display:none;position:absolute;inset:0;pointer-events:none;z-index:3}.touch button{pointer-events:auto;touch-action:none;border:1px solid #77809c;background:#111528b8;color:#eef0f6;width:54px;height:54px;border-radius:12px;font:inherit;font-size:21px}.touch .left{position:absolute;left:16px;bottom:20px}.touch .right{position:absolute;left:78px;bottom:20px}.touch .jump{position:absolute;left:48px;bottom:84px}.touch .fire{position:absolute;right:20px;bottom:24px;width:82px;height:82px;border-radius:50%;border-color:#caa34e;color:#ffe49a}.touch .wand{position:absolute;right:26px;bottom:118px;width:58px;height:40px;font-size:12px}
-    @media (pointer:coarse),(max-width:720px){#hint{display:none}.touch{display:block}#app{width:100vw;height:100vh}.card{padding:22px}.perk-grid{grid-template-columns:1fr}.wand-grid{grid-template-columns:1fr 1fr}}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<meta name="theme-color" content="#05060b" />
+<title>深岩秘术 · DEEPROCK ARCANA</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%2306070c'/%3E%3Crect x='5' y='2' width='6' height='2' fill='%23d8b25e'/%3E%3Crect x='4' y='4' width='8' height='2' fill='%23d8b25e'/%3E%3Crect x='6' y='6' width='4' height='6' fill='%237a5a8f'/%3E%3Crect x='6' y='7' width='1' height='1' fill='%23bde9ff'/%3E%3Crect x='9' y='7' width='1' height='1' fill='%23bde9ff'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main id="app">
-    <canvas id="game" width="320" height="180" aria-label="像素物理地牢"></canvas>
-    <div id="hud">
-      <div id="topbar">
-        <div class="cluster"><span class="tag">HP</span><div class="meter hp"><i id="hpFill"></i></div><span id="hpText">100/100</span><span class="tag">MANA</span><div class="meter mana"><i id="manaFill"></i></div><span id="manaText">120</span><span class="tag">LEV</span><div class="meter hover"><i id="hoverFill"></i></div></div>
-        <div class="cluster"><span id="biome" class="tag">MINES</span><span id="depth">0m</span><span id="gold" class="tag">0 gold</span></div>
-      </div>
-      <div id="wandHud"></div>
-      <div id="hint"><span class="kbd">A/D</span> 移动　<span class="kbd">W/Space</span> 飞跃　<span class="kbd">鼠标</span> 瞄准/开火　<span class="kbd">1-4</span> 换杖　<span class="kbd">E</span> 改杖</div>
+<main id="app">
+  <canvas id="game" width="480" height="270" aria-label="深岩秘术像素物理地牢"></canvas>
+  <div id="damageFlash"></div>
+  <div id="vignette"></div>
+
+  <div id="hud">
+    <div id="vitals">
+      <div class="meter-row"><span class="meter-ico">♥</span><div class="meter hp"><i id="hpFill"></i><span class="cap" id="hpText">100 / 100</span></div></div>
+      <div class="meter-row"><span class="meter-ico">✦</span><div class="meter mana"><i id="manaFill"></i><span class="cap" id="manaText">90 / 90</span></div></div>
+      <div class="meter-row"><span class="meter-ico">⌁</span><div class="meter lev"><i id="levFill"></i><span class="cap" id="levText"></span></div></div>
+      <div id="statusRow"></div>
+      <div id="perkRow"></div>
     </div>
-    <div id="toast"></div>
-    <section id="title" class="overlay">
-      <div class="card"><h1>PIXEL ALCHEMIST</h1><h2>一款 Noita 风格的纯前端像素物理地牢</h2><p>向下探索八层随机地牢。每个像素都会坠落、流动、燃烧、蒸发或反应；魔杖只是容器，真正的力量来自法术组合。</p><p><small>原创实现 · 单文件离线运行 · 桌面键鼠与手机触控 · 每局随机种子</small></p><div class="row"><button id="startBtn" class="primary">开始新的远征</button></div></div>
-    </section>
-    <section id="dead" class="overlay hide"><div class="card"><h1>你已化为尘埃</h1><h2 id="deadReason">死亡是学习的一部分。</h2><p id="runStats"></p><div class="row"><button id="restartBtn" class="primary">再来一次</button></div></div></section>
-    <section id="win" class="overlay hide"><div class="card"><h1>深渊被点亮</h1><h2>你击碎了终焉之眼</h2><p>世界没有被修复，但你已经掌握了它的反应规则。</p><div class="row"><button id="winBtn" class="primary">再次深入</button></div></div></section>
-    <section id="wandPanel" class="hide"></section>
-    <section id="perkPanel" class="hide"></section>
-    <div class="touch"><button id="leftBtn" class="left">◀</button><button id="rightBtn" class="right">▶</button><button id="jumpBtn" class="jump">▲</button><button id="fireBtn" class="fire">✦</button><button id="wandBtn" class="wand">换杖</button></div>
-  </main>
-  <script src="game.js"></script>
+    <div id="biomeBar">
+      <div id="biomeName">苔语林</div>
+      <div id="biomeSub">MOSSVEIL WOODS</div>
+      <div class="chips"><span class="chip gold" id="goldText">0 ◈</span><span class="chip" id="killText">击杀 0</span><span class="chip" id="depthText">0 m</span><span class="chip" id="materialChip">空气</span><span class="chip" id="seedChip">seed ——</span></div>
+    </div>
+    <div id="bossBar"><div class="name" id="bossName">熔心巨眼</div><div class="bar"><i id="bossFill"></i></div></div>
+    <div id="wandHud"></div>
+    <div id="hint">
+      <span class="k">A</span><span class="k">D</span> 移动　<span class="k">W</span> 跳跃 / 悬浮<br/>
+      <span class="k">鼠标</span> 瞄准　<span class="k">左键</span> 施法　<span class="k">E</span> 互动<br/>
+      <span class="k">1</span>-<span class="k">4</span> 换杖　<span class="k">R</span> 编辑台　<span class="k">Esc</span> 暂停　<span class="k">M</span> 静音
+    </div>
+    <div id="interactPrompt"><span class="k">E</span><span id="promptText">互动</span></div>
+  </div>
+
+  <div id="toast"></div>
+  <div id="banner"><div class="rule"></div><b id="bannerTitle"></b><span id="bannerSub"></span><div class="rule"></div></div>
+
+  <section id="title" class="overlay">
+    <div class="card">
+      <h1 class="logo">深岩<span class="glow">秘术</span></h1>
+      <h2>Deeprock Arcana</h2>
+      <p class="lede">每一粒尘土都会坠落、流动、燃烧与转化。<br/>魔杖只是容器，法术的顺序才是力量。</p>
+      <p><small>向下穿过七层地层。点燃、冻结、溶解、掩埋。<br/>你会死很多次——但每次死因都会被写下来。</small></p>
+      <p><small>手机横屏：左侧摇杆移动，右侧 ✦ 开火（自动索敌），▲ 跳跃，E 互动，Ⅱ 暂停。</small></p>
+      <div class="controls">
+        <div><b>A / D</b><span>左右移动</span></div>
+        <div><b>W / Space</b><span>跳跃，空中长按悬浮</span></div>
+        <div><b>鼠标左键</b><span>施法（按住连发）</span></div>
+        <div><b>E</b><span>拾取 / 宝箱 / 下行</span></div>
+        <div><b>1 — 4</b><span>切换魔杖</span></div>
+        <div><b>R</b><span>圣所内编辑魔杖</span></div>
+        <div><b>Esc</b><span>暂停</span></div>
+        <div><b>M</b><span>静音</span></div>
+      </div>
+      <div class="row"><button id="startBtn" class="btn">点燃第一根火把</button></div>
+      <p style="margin-top:16px"><small id="bestLine">尚无远征记录</small></p>
+    </div>
+  </section>
+
+  <section id="dead" class="overlay hide">
+    <div class="card">
+      <h1 class="deathTitle">你已归于尘土</h1>
+      <h2>RUN TERMINATED</h2>
+      <div class="deathCause" id="deadCause">死因：未知</div>
+      <div class="deathHint" id="deadHint"></div>
+      <div class="statsGrid">
+        <div><b id="stDepth">0</b><span>最深处</span></div>
+        <div><b id="stKills">0</b><span>击杀</span></div>
+        <div><b id="stGold">0</b><span>金币</span></div>
+        <div><b id="stTime">0:00</b><span>存活</span></div>
+      </div>
+      <p><small>这次世界已经死去。新的地层会在新的种子下重新生成。</small></p>
+      <div class="row"><button id="restartBtn" class="btn">再入深渊</button></div>
+    </div>
+  </section>
+
+  <section id="win" class="overlay hide">
+    <div class="card">
+      <h1 class="logo" style="font-size:clamp(24px,5vw,44px);color:#f1cf83">熔心已熄</h1>
+      <h2>THE HEART BELOW</h2>
+      <p class="lede">巨眼合上了。地底的火焰第一次安静下来。</p>
+      <p><small>但岩层仍在坠落，秘术仍在等待下一个持杖者。</small></p>
+      <div class="statsGrid">
+        <div><b id="wDepth">0</b><span>最深处</span></div>
+        <div><b id="wKills">0</b><span>击杀</span></div>
+        <div><b id="wGold">0</b><span>金币</span></div>
+        <div><b id="wTime">0:00</b><span>耗时</span></div>
+      </div>
+      <div class="row"><button id="winBtn" class="btn">再次下沉</button></div>
+    </div>
+  </section>
+
+  <section id="pause" class="overlay hide">
+    <div class="card">
+      <h1 class="logo" style="font-size:34px">暂 停</h1>
+      <h2>PAUSED</h2>
+      <div class="controls">
+        <div><b>A / D</b><span>移动</span></div>
+        <div><b>W / Space</b><span>跳跃 / 悬浮</span></div>
+        <div><b>鼠标</b><span>瞄准与施法</span></div>
+        <div><b>E</b><span>拾取 / 互动</span></div>
+        <div><b>1 — 4</b><span>切换魔杖</span></div>
+        <div><b>R</b><span>编辑魔杖（圣所）</span></div>
+        <div><b>M</b><span>静音</span></div>
+        <div><b>F5</b><span>重开一局</span></div>
+      </div>
+      <div class="row">
+        <button id="resumeBtn" class="btn">继续</button>
+        <button id="muteBtn" class="btn ghost">静音</button>
+        <button id="pauseRestart" class="btn danger">放弃本局</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="editor" class="panel hide"></section>
+  <section id="perks" class="overlay hide"></section>
+
+  <div id="touch">
+    <div id="joyBase" class="zone"><div id="joyKnob"></div></div>
+    <button id="btnJump" class="zone">▲</button>
+    <button id="btnFire" class="zone">✦</button>
+    <button id="btnAct" class="zone">E</button>
+    <button id="btnWand" class="zone">1</button>
+    <button id="btnPause" class="zone">Ⅱ</button>
+  </div>
+  <div id="rotate"><div>请横屏游玩<br/><small>DEEPROCK ARCANA</small></div></div>
+</main>
+<script src="game.js"></script>
 </body>
 </html>
