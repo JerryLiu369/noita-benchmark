@@ -1,0 +1,24 @@
+{
+  "simFrames": 329,
+  "wallMs": 7084,
+  "spawn": {
+    "x": 192,
+    "y": 102,
+    "hp": 100
+  },
+  "walked": true,
+  "jumped": true,
+  "casts": 17,
+  "kills": 0,
+  "maxDepth": 102,
+  "lightNear": 230,
+  "dead": true,
+  "gameState": "dead",
+  "cause": {
+    "code": "burn",
+    "msg": "烧死 · 火焰吞噬了你的血肉"
+  },
+  "deadReason": "烧死",
+  "causePanel": "烧死 · 火焰吞噬了你的血肉",
+  "runStats": "深入 102m · 击杀 0 · 金币 0 · 种子 777001"
+}

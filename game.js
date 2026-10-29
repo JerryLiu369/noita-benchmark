@@ -1,129 +1,1958 @@
-/* PIXEL ALCHEMIST - original browser prototype inspired by falling-sand roguelites.
-   No external assets, server, or build step required. */
-const canvas=document.getElementById('game'),ctx=canvas.getContext('2d',{alpha:false});
-const VW=320,VH=180,W=320,H=1680;
-const MAT={AIR:0,ROCK:1,DIRT:2,SAND:3,WATER:4,OIL:5,LAVA:6,WOOD:7,ICE:8,MOSS:9,BLOOD:10,STEAM:11,FIRE:12,SMOKE:13,GOLD:14,SNOW:15,TOXIC:16,STONE:17,METAL:18,HOLY:19};
-const MAT_NAME=['air','rock','dirt','sand','water','oil','lava','wood','ice','moss','blood','steam','fire','smoke','gold','snow','toxic','stone','metal','holy'];
-const MAT_COL=['#05060b','#424553','#59433d','#9a7545','#4d91c3','#8b673f','#e25c2f','#765141','#a9c8d1','#496c4b','#ad3f50','#c5dae1','#f4a23b','#8c8c9b','#e2b94c','#d4e4ef','#9bba45','#6c6c75','#6f747f','#746b85'];
-const SOLID=new Set([MAT.ROCK,MAT.DIRT,MAT.SAND,MAT.WOOD,MAT.ICE,MAT.MOSS,MAT.GOLD,MAT.STONE,MAT.METAL,MAT.HOLY]);
-const LIQ=new Set([MAT.WATER,MAT.OIL,MAT.LAVA,MAT.BLOOD,MAT.TOXIC]);
-const BIOMES=[
-  {name:'MINES',bg:'#11172a',rock:'#444650',accent:'#bc8755'},
-  {name:'COAL PITS',bg:'#151426',rock:'#36364a',accent:'#a66a48'},
-  {name:'SNOWY DEPTHS',bg:'#15223a',rock:'#596f7e',accent:'#b9dfef'},
-  {name:'HIISI BASE',bg:'#181d24',rock:'#48515b',accent:'#de9d54'},
-  {name:'UNDERGROUND JUNGLE',bg:'#0d211c',rock:'#315342',accent:'#58ae62'},
-  {name:'THE VAULT',bg:'#211a22',rock:'#574451',accent:'#d07b64'},
-  {name:'TEMPLE OF ART',bg:'#1c1829',rock:'#695b76',accent:'#d6b6e2'},
-  {name:'THE LABORATORY',bg:'#21151a',rock:'#73614c',accent:'#f0c56c'}
-];
-let seed=0,rng=()=>0,world,player,enemies=[],projectiles=[],particles=[],pickups=[],wands=[],currentWand=0,perkChoices=[],holySeen=new Set(),gameState='title',cameraY=0,frame=0,logTimer=0,runGold=0,runDepth=0,editMode=false,hoverHeld=false;
-const keys={};let pointer={x:160,y:90,down:false,active:false};
-const $=id=>document.getElementById(id);
-function makeRng(s){let t=s>>>0;return()=>{t+=0x6D2B79F5;let x=t;x=Math.imul(x^x>>>15,1|x);x^=x+Math.imul(x^x>>>7,61|x);return((x^x>>>14)>>>0)/4294967296}}
-function rint(a,b){return Math.floor(rng()*(b-a+1))+a} function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
-function idx(x,y){return y*W+x} function inside(x,y){return x>=0&&x<W&&y>=0&&y<H}
-function get(x,y){return inside(x,y)?world.cells[idx(x|0,y|0)]:MAT.ROCK} function setm(x,y,m){if(inside(x,y))world.cells[idx(x|0,y|0)]=m}
-function biomeAt(y){let n=clamp(Math.floor(y/190),0,7);return BIOMES[n]}
-function inHoly(y){return world.holy.some(h=>y>=h.y0&&y<h.y1)}
+'use strict';
+/* EMBERWELL — original falling-sand action roguelite.
+   Mechanics inspired by publicly documented Noita systems.
+   No third-party assets, no build step, no network. */
+(function (global) {
+  const VW = 384, VH = 216, W = 384, H = 2100;
+  const SURF = 72, BH = 352, HH = 68;
+  const NMAT = 40;
+  const T_AIR = 0, T_STATIC = 1, T_POWDER = 2, T_LIQUID = 3, T_GAS = 4, T_FIRE = 5;
 
-function generateWorld(){
-  world={w:W,h:H,cells:new Uint8Array(W*H),holy:[],rooms:[],visited:new Uint8Array(H)};
-  world.cells.fill(MAT.AIR);
-  for(let y=0;y<H;y++){
-    const b=biomeAt(y), band=Math.floor(y/190), holy=(y>155&&y%190<44);
-    if(holy){ for(let x=0;x<W;x++)setm(x,y,MAT.ROCK); }
-    for(let x=0;x<W;x++){
-      if(y<28){continue}
-      const edge=x<8||x>W-9;
-      const cavern=Math.sin(x*.105+y*.035)+Math.sin(x*.022-y*.08)+Math.sin((x+y)*.014);
-      let solid=edge||cavern<-0.35||(y>H-18);
-      if(holy)solid=true;
-      if(holy && x>42&&x<278&&y%190>8&&y%190<38)solid=false;
-      if(!holy && y%190>48 && cavern>0.2)solid=false;
-      if(solid){
-        let mat=MAT.ROCK;
-        if(band===0)mat=rng()<.38?MAT.DIRT:MAT.ROCK;
-        else if(band===1)mat=rng()<.5?MAT.ROCK:MAT.DIRT;
-        else if(band===2)mat=rng()<.45?MAT.SNOW:MAT.ICE;
-        else if(band===3)mat=rng()<.55?MAT.METAL:MAT.ROCK;
-        else if(band===4)mat=rng()<.5?MAT.MOSS:MAT.DIRT;
-        else if(band===5)mat=rng()<.42?MAT.METAL:MAT.ROCK;
-        else if(band===6)mat=rng()<.36?MAT.STONE:MAT.ROCK;
-        else mat=rng()<.4?MAT.METAL:MAT.STONE;
-        setm(x,y,mat);
-      }
-      if(!holy && !solid && rng()<.018){setm(x,y,band===2?MAT.WATER:(band===5?MAT.OIL:MAT.SAND))}
+  const AIR = 0, ROCK = 1, DIRT = 2, SAND = 3, WATER = 4, OIL = 5, LAVA = 6, WOOD = 7,
+    ICE = 8, MOSS = 9, BLOOD = 10, STEAM = 11, FIRE = 12, SMOKE = 13, GOLD = 14,
+    SNOW = 15, TOXIC = 16, STONE = 17, METAL = 18, BRICK = 19, ACID = 20, COAL = 21,
+    FUNGUS = 22, GUNP = 23, PGAS = 24, SLIME = 25, ASH = 26, EMBER = 27, SANDST = 28,
+    SNOWROCK = 29, VINE = 30, GLASS = 31, FGAS = 32, RUST = 33, CRYSTAL = 34, MUD = 35,
+    WOODP = 36, DENSE = 37, GRASS = 38, BONE = 39;
+
+  const TYPE = new Uint8Array(NMAT);
+  const DEN = new Float32Array(NMAT);
+  const HARD = new Uint8Array(NMAT);
+  const FLAM = new Uint8Array(NMAT);
+  const CORR = new Uint8Array(NMAT);
+  const EMIT = new Uint8Array(NMAT);
+  const CR = new Uint8Array(NMAT), CG = new Uint8Array(NMAT), CB = new Uint8Array(NMAT), CV = new Uint8Array(NMAT);
+  const ER = new Uint8Array(NMAT), EG = new Uint8Array(NMAT), EB = new Uint8Array(NMAT);
+  const MNAME = new Array(NMAT);
+
+  function mat(id, o) {
+    TYPE[id] = o.t; DEN[id] = o.d || 0; HARD[id] = o.h || 0; FLAM[id] = o.f || 0; CORR[id] = o.c || 0;
+    EMIT[id] = o.e || 0; CR[id] = o.r; CG[id] = o.g; CB[id] = o.b; CV[id] = o.v || 6;
+    ER[id] = o.er || 255; EG[id] = o.eg || 180; EB[id] = o.eb || 80;
+    MNAME[id] = o.n;
+  }
+  mat(AIR,      { t: T_AIR,    d: 0,    h: 0,  r: 8,   g: 9,   b: 14,  v: 0, n: '空气' });
+  mat(ROCK,     { t: T_STATIC, d: 5,    h: 10, r: 78,  g: 74,  b: 70,  v: 10, n: '岩石' });
+  mat(DIRT,     { t: T_STATIC, d: 4,    h: 6,  r: 98,  g: 72,  b: 52,  v: 12, n: '土壤' });
+  mat(SAND,     { t: T_POWDER, d: 1.8,  h: 4,  r: 196, g: 162, b: 92,  v: 14, n: '沙' });
+  mat(WATER,    { t: T_LIQUID, d: 1.0,  h: 0,  r: 58,  g: 122, b: 186, v: 10, n: '水' });
+  mat(OIL,      { t: T_LIQUID, d: 0.80, h: 0,  f: 90, r: 92,  g: 64,  b: 28,  v: 8, n: '油' });
+  mat(LAVA,     { t: T_LIQUID, d: 2.60, h: 0,  e: 200, r: 255, g: 92,  b: 28,  v: 18, er: 255, eg: 120, eb: 20, n: '熔岩' });
+  mat(WOOD,     { t: T_STATIC, d: 3,    h: 6,  f: 80, r: 118, g: 78,  b: 46,  v: 10, n: '木' });
+  mat(ICE,      { t: T_STATIC, d: 3,    h: 8,  r: 170, g: 210, b: 230, v: 10, n: '冰' });
+  mat(MOSS,     { t: T_STATIC, d: 2,    h: 4,  f: 50, r: 62,  g: 108, b: 52,  v: 10, n: '苔' });
+  mat(BLOOD,    { t: T_LIQUID, d: 1.05, h: 0,  r: 168, g: 36,  b: 48,  v: 10, n: '血' });
+  mat(STEAM,    { t: T_GAS,    d: 0.30, h: 0,  e: 12, r: 198, g: 214, b: 222, v: 8, n: '蒸汽' });
+  mat(FIRE,     { t: T_FIRE,   d: 0.15, h: 0,  e: 220, r: 255, g: 150, b: 40,  v: 24, er: 255, eg: 160, eb: 40, n: '火' });
+  mat(SMOKE,    { t: T_GAS,    d: 0.20, h: 0,  r: 86,  g: 86,  b: 96,  v: 10, n: '烟' });
+  mat(GOLD,     { t: T_POWDER, d: 3.00, h: 4,  e: 40, r: 232, g: 188, b: 64,  v: 12, er: 255, eg: 210, eb: 80, n: '金沙' });
+  mat(SNOW,     { t: T_POWDER, d: 0.90, h: 3,  r: 226, g: 236, b: 244, v: 8, n: '雪' });
+  mat(TOXIC,    { t: T_LIQUID, d: 1.15, h: 0,  r: 132, g: 186, b: 42,  v: 10, n: '毒泥' });
+  mat(STONE,    { t: T_STATIC, d: 5,    h: 10, r: 96,  g: 96,  b: 100, v: 8, n: '凝岩' });
+  mat(METAL,    { t: T_STATIC, d: 7,    h: 12, r: 118, g: 124, b: 132, v: 8, n: '钢铁' });
+  mat(BRICK,    { t: T_STATIC, d: 8,    h: 14, r: 92,  g: 86,  b: 78,  v: 8, n: '圣砖' });
+  mat(ACID,     { t: T_LIQUID, d: 1.40, h: 0,  e: 30, r: 150, g: 230, b: 60,  v: 12, er: 160, eg: 255, eb: 80, n: '强酸' });
+  mat(COAL,     { t: T_STATIC, d: 4,    h: 8,  f: 70, r: 32,  g: 30,  b: 34,  v: 8, n: '煤' });
+  mat(FUNGUS,   { t: T_STATIC, d: 2,    h: 5,  f: 55, e: 90, r: 186, g: 72,  b: 168, v: 14, er: 220, eg: 80, eb: 210, n: '菌肉' });
+  mat(GUNP,     { t: T_POWDER, d: 1.30, h: 3,  f: 100, r: 58,  g: 52,  b: 46,  v: 8, n: '火药' });
+  mat(PGAS,     { t: T_GAS,    d: 0.25, h: 0,  r: 96,  g: 160, b: 48,  v: 10, n: '毒气' });
+  mat(SLIME,    { t: T_LIQUID, d: 1.20, h: 0,  r: 72,  g: 168, b: 96,  v: 10, n: '粘液' });
+  mat(ASH,      { t: T_POWDER, d: 0.70, h: 2,  r: 120, g: 118, b: 116, v: 8, n: '灰' });
+  mat(EMBER,    { t: T_POWDER, d: 0.50, h: 1,  e: 160, f: 20, r: 255, g: 110, b: 30, v: 16, er: 255, eg: 140, eb: 30, n: '余烬' });
+  mat(SANDST,   { t: T_STATIC, d: 5,    h: 9,  r: 164, g: 132, b: 84,  v: 10, n: '砂岩' });
+  mat(SNOWROCK, { t: T_STATIC, d: 5,    h: 10, r: 132, g: 154, b: 168, v: 8, n: '冻岩' });
+  mat(VINE,     { t: T_STATIC, d: 2,    h: 3,  f: 75, r: 48,  g: 96,  b: 44,  v: 8, n: '藤' });
+  mat(GLASS,    { t: T_STATIC, d: 3,    h: 5,  e: 20, r: 168, g: 196, b: 204, v: 6, n: '玻璃' });
+  mat(FGAS,     { t: T_GAS,    d: 0.12, h: 0,  f: 100, e: 40, r: 180, g: 90, b: 40, v: 10, er: 255, eg: 140, eb: 40, n: '燃汽' });
+  mat(RUST,     { t: T_STATIC, d: 6,    h: 11, r: 140, g: 78,  b: 48,  v: 8, n: '锈铁' });
+  mat(CRYSTAL,  { t: T_STATIC, d: 5,    h: 11, e: 110, r: 90,  g: 210, b: 230, v: 10, er: 80, eg: 230, eb: 255, n: '晶簇' });
+  mat(MUD,      { t: T_POWDER, d: 1.60, h: 4,  r: 86,  g: 64,  b: 42,  v: 10, n: '泥' });
+  mat(WOODP,    { t: T_POWDER, d: 1.10, h: 3,  f: 85, r: 130, g: 88,  b: 52,  v: 8, n: '木屑' });
+  mat(DENSE,    { t: T_STATIC, d: 9,    h: 15, r: 36,  g: 38,  b: 44,  v: 4, n: '极密岩' });
+  mat(GRASS,    { t: T_STATIC, d: 2,    h: 2,  f: 70, r: 72,  g: 128, b: 48,  v: 10, n: '草' });
+  mat(BONE,     { t: T_POWDER, d: 1.50, h: 4,  r: 214, g: 206, b: 180, v: 8, n: '骨粉' });
+
+  const BIOMES = [
+    { name: '矿坑', en: 'MINES',      bg: [11, 13, 20], amb: 16, tint: [1, 0.95, 0.85] },
+    { name: '煤坑', en: 'COAL PITS',  bg: [9, 9, 14],   amb: 11, tint: [0.75, 0.72, 0.78] },
+    { name: '菌窟', en: 'FUNGAL',     bg: [16, 8, 18],  amb: 13, tint: [1.05, 0.8, 1.15] },
+    { name: '冻岩', en: 'FROST',      bg: [10, 16, 28], amb: 18, tint: [0.85, 1.05, 1.2] },
+    { name: '熔湖', en: 'EMBERLAKE',  bg: [18, 8, 8],   amb: 9,  tint: [1.15, 0.8, 0.7] }
+  ];
+
+  const SPELLS = {
+    spark:   { id: 'spark',   name: '星火',   kind: 'proj',  mana: 5,  delay: 3,  rec: 0,  dmg: 9,  spd: 4.4, spr: 3,  col: [255, 230, 110], light: 1.0, glyph: '星' },
+    bolt:    { id: 'bolt',    name: '秘矢',   kind: 'proj',  mana: 12, delay: 9,  rec: 0,  dmg: 20, spd: 5.2, spr: 1,  col: [120, 210, 255], light: 0.8, glyph: '矢' },
+    fireball:{ id: 'fireball',name: '炎珠',   kind: 'proj',  mana: 22, delay: 16, rec: 6,  dmg: 26, spd: 2.7, spr: 5,  col: [255, 130, 40],  light: 1.4, expl: 11, fire: 1, glyph: '炎' },
+    disc:    { id: 'disc',    name: '刃盘',   kind: 'proj',  mana: 16, delay: 11, rec: 0,  dmg: 18, spd: 3.6, spr: 6,  col: [210, 220, 230], bounce: 1, pierce: 3, glyph: '刃' },
+    drill:   { id: 'drill',   name: '光钻',   kind: 'proj',  mana: 8,  delay: 0,  rec: -10,dmg: 7,  spd: 6.2, spr: 0,  col: [230, 245, 255], light: 1.1, drill: 7, glyph: '钻' },
+    bubble:  { id: 'bubble',  name: '泡弹',   kind: 'proj',  mana: 6,  delay: 5,  rec: 0,  dmg: 8,  spd: 2.3, spr: 10, col: [170, 230, 255], bounce: 1, glyph: '泡' },
+    ice:     { id: 'ice',     name: '霜刺',   kind: 'proj',  mana: 14, delay: 10, rec: 0,  dmg: 15, spd: 4.1, spr: 2,  col: [180, 230, 255], freeze: 1, glyph: '霜' },
+    acidb:   { id: 'acidb',   name: '酸滴',   kind: 'proj',  mana: 12, delay: 9,  rec: 0,  dmg: 11, spd: 3.1, spr: 4,  col: [160, 255, 70],  acid: 1, glyph: '酸' },
+    bomb:    { id: 'bomb',    name: '爆弹',   kind: 'proj',  mana: 35, delay: 18, rec: 36, dmg: 48, spd: 1.9, spr: 2,  col: [255, 214, 70],  expl: 17, glyph: '爆' },
+    spark_t: { id: 'spark_t', name: '星火·触', kind: 'proj', mana: 10, delay: 5,  rec: 0,  dmg: 6,  spd: 4.0, spr: 2,  col: [255, 200, 80],  light: 1.0, trigger: 'hit', draws: 1, glyph: '触' },
+    bolt_t:  { id: 'bolt_t',  name: '延时矢', kind: 'proj',  mana: 16, delay: 9,  rec: 0,  dmg: 10, spd: 3.5, spr: 1,  col: [190, 150, 255], light: 0.9, trigger: 'timer', timer: 26, draws: 1, glyph: '延' },
+    triple:  { id: 'triple',  name: '三重',   kind: 'multi', mana: 9,  delay: 5,  rec: 3,  count: 3, sprAdd: 14, glyph: '三' },
+    dual:    { id: 'dual',    name: '双重',   kind: 'multi', mana: 4,  delay: 2,  rec: 1,  count: 2, sprAdd: 8, glyph: '双' },
+    homing:  { id: 'homing',  name: '追踪',   kind: 'mod',   mana: 16, delay: 0,  rec: 0,  homing: 0.14, glyph: '追' },
+    flame:   { id: 'flame',   name: '火轨',   kind: 'mod',   mana: 5,  delay: 0,  rec: 0,  fire: 1, glyph: '轨' },
+    bounce:  { id: 'bounce',  name: '弹射',   kind: 'mod',   mana: 3,  delay: 0,  rec: 0,  bounce: 1, glyph: '弹' },
+    dmgplus: { id: 'dmgplus', name: '强伤',   kind: 'mod',   mana: 12, delay: 4,  rec: 0,  dmgMul: 1.7, glyph: '伤' },
+    light:   { id: 'light',   name: '光辉',   kind: 'mod',   mana: 3,  delay: 0,  rec: 0,  lightAdd: 1.6, glyph: '光' },
+    speed:   { id: 'speed',   name: '加速',   kind: 'mod',   mana: 3,  delay: -3, rec: 0,  spdMul: 1.55, glyph: '速' },
+    explmod: { id: 'explmod', name: '爆化',   kind: 'mod',   mana: 10, delay: 5,  rec: 3,  expl: 8, glyph: '炸' }
+  };
+  const PROJ_IDS = ['spark', 'bolt', 'fireball', 'disc', 'drill', 'bubble', 'ice', 'acidb', 'bomb'];
+  const MOD_IDS = ['homing', 'flame', 'bounce', 'dmgplus', 'light', 'speed', 'explmod'];
+  const TRIG_IDS = ['spark_t', 'bolt_t'];
+  const MULTI_IDS = ['triple', 'dual'];
+
+  const PERKS = [
+    { id: 'steel',  name: '钢骨',   desc: '受到的伤害降低 50%。', apply: p => { p.perk.resist = true; } },
+    { id: 'glass',  name: '玻璃炮', desc: '法术伤害翻倍，但最大生命减半。', apply: p => { p.perk.power = true; p.maxHp = Math.floor(p.maxHp * 0.5); p.hp = Math.min(p.hp, p.maxHp); } },
+    { id: 'crit',   name: '暴击眼', desc: '25% 几率造成双倍法术伤害。', apply: p => { p.perk.crit = true; } },
+    { id: 'breath', name: '长息',   desc: '悬浮回复速度翻倍。', apply: p => { p.perk.flight = true; } },
+    { id: 'tinker', name: '随处工匠', desc: '在任何地方都能编辑法杖。', apply: p => { p.perk.tinker = true; } },
+    { id: 'gold',   name: '噬金',   desc: '拾取金币 +50%，敌人多掉金。', apply: p => { p.perk.gold = true; } },
+    { id: 'fireimm',name: '烬肤',   desc: '火焰与熔岩无法点燃你。', apply: p => { p.perk.fireImm = true; } },
+    { id: 'toximm', name: '净血',   desc: '免疫毒泥、毒气与强酸持续伤害。', apply: p => { p.perk.toxImm = true; } },
+    { id: 'vamp',   name: '血偿',   desc: '击杀回复 8 点生命。', apply: p => { p.perk.vamp = true; } },
+    { id: 'lamp',   name: '井灯',   desc: '提灯光照范围显著增大。', apply: p => { p.perk.lamp = true; } }
+  ];
+
+  const ENEMY_DEF = {
+    tusk:      { name: '岩齿', hp: 28, w: 7, h: 9,  dmg: 8,  kind: 'melee' },
+    ashgun:    { name: '烬炮', hp: 36, w: 7, h: 9,  dmg: 10, kind: 'ranged' },
+    nighthook: { name: '夜翼', hp: 18, w: 8, h: 6,  dmg: 6,  kind: 'fly' },
+    burstling: { name: '爆胞', hp: 22, w: 6, h: 6,  dmg: 28, kind: 'boom' },
+    borewyrm:  { name: '钻蠕', hp: 54, w: 9, h: 7,  dmg: 12, kind: 'burrow' },
+    wellseye:  { name: '井瞳', hp: 720,w: 16,h: 16, dmg: 16, kind: 'boss' }
+  };
+
+  let canvas, ctx, img, pix, light, lR, lG, lB;
+  let cells, life, stampA, stamp;
+  let seed = 1, rng = Math.random, frame = 0, acc = 0, lastT = 0, fps = 60, fpsC = 0, fpsT = 0;
+  let gameState = 'title', editMode = false, paused = false;
+  let player, enemies, projectiles, particles, pickups, wands, worldLights, holy, flasks;
+  let curWand = 0, inv = [], perkChoices = [], holySeen, run;
+  let camY = 0, shakeMag = 0, flash = 0, kickCD = 0, toastT = 0, hudDirty = true;
+  let keys = Object.create(null);
+  let pointer = { x: VW / 2, y: VH / 2, down: false, active: false };
+  let selectedSlot = null, heldSpell = null;
+  const N4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+
+  function $(id) {
+    if (typeof document === 'undefined') return fakeEl(id);
+    return document.getElementById(id);
+  }
+  const fakeStore = Object.create(null);
+  function fakeEl(id) {
+    if (!fakeStore[id]) {
+      fakeStore[id] = {
+        id, style: {}, classList: { add() {}, remove() {}, contains() { return false; } },
+        innerHTML: '', textContent: '', className: '',
+        addEventListener() {}, getBoundingClientRect() { return { left: 0, top: 0, width: VW, height: VH }; }
+      };
     }
-    if(y%190===156){world.holy.push({y0:y,y1:y+44,claimed:false});}
+    return fakeStore[id];
   }
-  // guaranteed vertical shafts and holy mountain rooms
-  for(let y=28;y<H-18;y++){ if(y%190>48&&rng()<.86){for(let x=145+rint(-18,18);x<175+rint(-18,18);x++)setm(x,y,MAT.AIR)} }
-  for(const h of world.holy){for(let y=h.y0+7;y<h.y1-2;y++)for(let x=38;x<282;x++)setm(x,y,MAT.AIR);for(let x=45;x<275;x++){setm(x,h.y0+3,MAT.HOLY);setm(x,h.y1-1,MAT.HOLY)}for(let y=h.y0+3;y<h.y1;y++){setm(43,y,MAT.HOLY);setm(277,y,MAT.HOLY)} }
-  // starting clearing
-  for(let y=16;y<58;y++)for(let x=132;x<188;x++)setm(x,y,MAT.AIR);
-  enemies=[];projectiles=[];particles=[];pickups=[];holySeen=new Set();runGold=0;runDepth=0;
-  player={x:160,y:42,vx:0,vy:0,w:6,h:10,hp:100,maxHp:100,mana:120,maxMana:120,hover:100,maxHover:100,inv:0,onGround:false,dir:1,wet:0,burning:0,poison:0,dead:false,perk:{},kills:0};
-  for(let band=0;band<8;band++){let y0=band*190+72,y1=Math.min(H-40,y0+105);for(let i=0;i<6+band*2;i++){let x=rint(24,296),y=rint(y0,y1);if(get(x,y)===MAT.AIR)spawnEnemy(rng()<.22?'shooter':(rng()<.2?'bat':'walker'),x,y)}for(let i=0;i<4;i++){let x=rint(30,290),y=rint(y0,y1);if(get(x,y)===MAT.AIR)pickups.push({type:rng()<.6?'gold':'spell',x,y,vx:0,vy:0,val:rint(5,18),spell:randomSpell()})}}
-  spawnEnemy('boss',160,H-70);
-}
-function randomSpell(){return ['spark','bolt','fireball','bomb','drill','water','scatter','lightning','teleport'][rint(0,8)]}
-function spawnEnemy(type,x,y){let e={type,x,y,vx:0,vy:0,hp:type==='boss'?620:(type==='shooter'?42:type==='bat'?18:28),max:type==='boss'?620:(type==='shooter'?42:type==='bat'?18:28),cool:rint(30,100),dir:rng()<.5?-1:1,phase:rng()*9,dead:false};if(get(x,y)!==MAT.AIR){for(let yy=y;yy>0&&get(x,yy)!==MAT.AIR;yy--)if(get(x,yy-1)===MAT.AIR){e.y=yy-1;break}}enemies.push(e)}
 
-const SPELLS={
-  spark:{name:'火花弹',cost:4,delay:8,color:'#ffe780',kind:'bolt',dmg:10,speed:3.7},bolt:{name:'魔法箭',cost:8,delay:16,color:'#82d5ff',kind:'bolt',dmg:21,speed:4.2},fireball:{name:'炎爆',cost:18,delay:28,color:'#ff9345',kind:'explosive',dmg:30,speed:2.8,rad:10},bomb:{name:'不稳定炸弹',cost:28,delay:36,color:'#f4d15f',kind:'explosive',dmg:60,speed:2.1,rad:16},drill:{name:'光明钻头',cost:9,delay:3,color:'#e9f4ff',kind:'drill',dmg:8,speed:4.8},water:{name:'水流',cost:2,delay:2,color:'#6fc4ff',kind:'water',dmg:2,speed:4.4},scatter:{name:'散射弹',cost:13,delay:24,color:'#d3a7ff',kind:'multi',dmg:12,speed:3.2},lightning:{name:'链式闪电',cost:22,delay:35,color:'#b9e7ff',kind:'chain',dmg:42,speed:5},teleport:{name:'短距传送',cost:20,delay:45,color:'#b28dff',kind:'teleport',dmg:0,speed:0}
-};
-const MODS={triple:{name:'三重施法',cost:10,color:'#ffcf6b'},homing:{name:'追踪',cost:5,color:'#dc8cff'},fire:{name:'火焰轨迹',cost:3,color:'#ff8149'},bouncy:{name:'弹射',cost:3,color:'#83e9b2'},critical:{name:'暴击',cost:4,color:'#fff0a4'},explosive:{name:'爆炸修饰',cost:7,color:'#ff9a55'},mana:{name:'节能',cost:-2,color:'#8de6ff'}};
-function baseWand(name,slots){return {name,slots,castDelay:10+slots.length*2,recharge:30,mana:130,manaMax:130,regen:20,shuffle:false,timer:0,shot:0}}
-function setupWands(){wands=[baseWand('晨星',[{id:'spark'},{id:'spark'},{id:'fire'}]),baseWand('水银',[{id:'bolt'},{id:'homing'},{id:'mana'}]),baseWand('矿井',[{id:'bomb'},{id:'explosive'}]),baseWand('裂隙',[{id:'drill'},{id:'bouncy'},{id:'critical'}])];wands.forEach((w,i)=>{w.slots=w.slots.map(s=>SPELLS[s.id]?{id:s.id}:MODS[s.id]?{id:s.id}:s);wands[i].manaMax=140+i*25;wands[i].mana=wands[i].manaMax})}
-function spellName(id){return SPELLS[id]?.name||MODS[id]?.name||id}
-
-function solidAtRect(x,y,w,h){const l=Math.floor(x-w/2),r=Math.floor(x+w/2),t=Math.floor(y-h/2),b=Math.floor(y+h/2);for(let yy=t;yy<=b;yy++)for(let xx=l;xx<=r;xx++)if(SOLID.has(get(xx,yy)))return true;return false}
-function moveBody(o,dx,dy,w,h){let moved=false;if(dx){let nx=o.x+dx;if(!solidAtRect(nx,o.y,w,h)){o.x=nx;moved=true}else{o.vx=0}}if(dy){let ny=o.y+dy;if(!solidAtRect(o.x,ny,w,h)){o.y=ny;moved=true}else{o.vy=0}}return moved}
-function aim(){let ax=pointer.active?pointer.x-player.x:pointer.x;let ay=pointer.active?(pointer.y+cameraY-player.y):0;if(Math.abs(ax)<.1&&Math.abs(ay)<.1)ax=player.dir*10;return {x:ax,y:ay}}
-function cast(){if(gameState!=='play'||editMode||perkChoices.length)return;let w=wands[currentWand];if(w.timer>0)return;let a=aim(),len=Math.hypot(a.x,a.y)||1,dx=a.x/len,dy=a.y/len;let base=w.slots.find(s=>SPELLS[s.id]);if(!base)return;let s=SPELLS[base.id],mods=w.slots.filter(x=>!SPELLS[x.id]).map(x=>x.id);let cost=Math.max(1,s.cost+mods.reduce((n,m)=>n+(MODS[m]?.cost||0),0));if(w.mana<cost){toast('魔力不足');return}w.mana-=cost;w.timer=(w.castDelay+s.delay)*.6;let count=s.kind==='multi'?3:1;if(mods.includes('triple'))count+=2;for(let i=0;i<count;i++){let spread=(i-(count-1)/2)*.13;let c=Math.cos(spread),q=Math.sin(spread),vx=(dx*c-dy*q)*s.speed,vy=(dx*q+dy*c)*s.speed;let p={x:player.x+dx*7,y:player.y+dy*7,vx,vy,life:160,type:s.kind,dmg:s.dmg*(player.perk.power?2:1),color:s.color,rad:(s.rad||2)*(player.perk.power?1.35:1),bouncy:mods.includes('bouncy'),homing:mods.includes('homing'),fire:mods.includes('fire')||s.kind==='explosive',explosive:mods.includes('explosive')||s.kind==='explosive',chain: s.kind==='chain',water:s.kind==='water',teleport:s.kind==='teleport',drill:s.kind==='drill',owner:'player'};projectiles.push(p)}
-  if(s.kind==='teleport'){player.x=clamp(player.x+dx*64,8,W-8);player.y=clamp(player.y+dy*64,12,H-20);toast('短距传送')}
-  sound(s.kind==='explosive'?'boom':'cast');
-}
-function impact(p,x,y){if(p.teleport)return;if(p.explosive)explode(x,y,p.rad||10,p.dmg);else if(p.drill){for(let q=-3;q<=3;q++)for(let k=-3;k<=3;k++)if(q*q+k*k<13&&SOLID.has(get(x+q,y+k)))setm(x+q,y+k,MAT.AIR)}else if(p.water){for(let i=0;i<3;i++)if(get(x+rint(-1,1),y+rint(-1,1))!==MAT.HOLY)setm(x+rint(-1,1),y+rint(-1,1),MAT.WATER)}else if(p.fire){setm(x,y,MAT.FIRE);for(let i=0;i<3;i++)if(inside(x+rint(-2,2),y+rint(-2,2)))setm(x+rint(-2,2),y+rint(-2,2),MAT.FIRE)}
-}
-function explode(x,y,rad,dmg){for(let yy=-rad;yy<=rad;yy++)for(let xx=-rad;xx<=rad;xx++){let d=Math.hypot(xx,yy);if(d<=rad){let gx=x+xx,gy=y+yy;if(inside(gx,gy)&&get(gx,gy)!==MAT.HOLY){if(SOLID.has(get(gx,gy))||LIQ.has(get(gx,gy)))setm(gx,gy,d<rad*.5?MAT.AIR:(rng()<.3?MAT.FIRE:MAT.AIR));}}}particles.push({x,y,life:12,max:12,kind:'boom',rad});for(const e of enemies)if(!e.dead&&Math.hypot(e.x-x,e.y-y)<rad+7)damageEnemy(e,dmg*(1-Math.hypot(e.x-x,e.y-y)/(rad+7)));if(Math.hypot(player.x-x,player.y-y)<rad+6)hurt(8,'爆炸波及')}
-function damageEnemy(e,d){e.hp-=d;if(e.hp<=0)killEnemy(e)}
-function killEnemy(e){if(e.dead)return;e.dead=true;player.kills++;let n=e.type==='boss'?160:rint(3,16);pickups.push({type:'gold',x:e.x,y:e.y,vx:rng()-.5,vy:-1.5,val:n});if(e.type!=='boss')for(let i=0;i<4;i++)particles.push({x:e.x+rint(-3,3),y:e.y+rint(-3,3),life:rint(12,28),max:28,kind:'blood'});else{for(let i=0;i<18;i++)particles.push({x:e.x,y:e.y,life:60,max:60,kind:'boom',rad:18});gameState='win';$('win').classList.remove('hide');sound('win')}}
-function hurt(d,reason){if(player.inv>0||player.dead)return;let reduce=player.perk.resist?0.5:1;player.hp-=d*reduce;player.inv=35;toast(reason||'受到伤害');if(player.hp<=0){player.dead=true;gameState='dead';$('deadReason').textContent=reason||'你的身体无法继续承受混沌。';$('runStats').textContent=`深入 ${Math.floor(player.y)}m · 击败 ${player.kills} 个生物 · 携带 ${runGold} gold`;$('dead').classList.remove('hide');sound('dead')}}
-
-function updateMaterials(){
-  const y0=clamp(Math.floor(cameraY)-12,0,H-1),y1=clamp(y0+VH+24,1,H-2);
-  for(let y=y1;y>=y0;y--){let start=(frame*7+y*13)%W;for(let k=0;k<W;k++){let x=(start+k)%W,m=get(x,y);if(m===MAT.SAND||m===MAT.SNOW){if(get(x,y+1)===MAT.AIR){setm(x,y,MAT.AIR);setm(x,y+1,m)}else{let d=rng()<.5?-1:1;if(get(x+d,y+1)===MAT.AIR){setm(x,y,MAT.AIR);setm(x+d,y+1,m)}}}else if(LIQ.has(m)){if(m===MAT.LAVA&&get(x,y+1)===MAT.WATER){setm(x,y,MAT.STONE);setm(x,y+1,MAT.STEAM)}else if(get(x,y+1)===MAT.AIR){setm(x,y,MAT.AIR);setm(x,y+1,m)}else{let d=rng()<.5?-1:1;if(get(x+d,y)===MAT.AIR){setm(x,y,MAT.AIR);setm(x+d,y,m)}}}else if(m===MAT.STEAM||m===MAT.SMOKE){if(get(x,y-1)===MAT.AIR){setm(x,y,MAT.AIR);setm(x,y-1,m)}else if(rng()<.03)setm(x,y,m===MAT.STEAM?MAT.WATER:MAT.AIR)}else if(m===MAT.FIRE){if(rng()<.08)setm(x,y,MAT.SMOKE);for(let q=-1;q<=1;q++)for(let p=-1;p<=1;p++)if(get(x+q,y+p)===MAT.WOOD&&rng()<.08)setm(x+q,y+p,MAT.FIRE)}else if(m===MAT.WATER){}}
+  function makeRng(s) {
+    let t = s >>> 0;
+    return function () {
+      t += 0x6D2B79F5;
+      let x = t;
+      x = Math.imul(x ^ x >>> 15, 1 | x);
+      x ^= x + Math.imul(x ^ x >>> 7, 61 | x);
+      return ((x ^ x >>> 14) >>> 0) / 4294967296;
+    };
   }
-}
-function updateProjectiles(){for(let i=projectiles.length-1;i>=0;i--){let p=projectiles[i];if(p.homing){let near=enemies.filter(e=>!e.dead).sort((a,b)=>Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0];if(near&&Math.hypot(near.x-p.x,near.y-p.y)<100){let d=Math.hypot(near.x-p.x,near.y-p.y)||1;p.vx+=(near.x-p.x)/d*.08;p.vy+=(near.y-p.y)/d*.08;let n=Math.hypot(p.vx,p.vy)||1;p.vx=p.vx/n*3.8;p.vy=p.vy/n*3.8}}p.x+=p.vx;p.y+=p.vy;p.vy+=p.type==='bolt'?.012:.035;p.life--;let hit=SOLID.has(get(p.x,p.y));if(hit){if(p.bouncy&&p.life>20){p.vx*=-.8;p.vy*=-.8;p.life-=20}else{impact(p,Math.floor(p.x),Math.floor(p.y));projectiles.splice(i,1);continue}}if(p.owner==='enemy'&&Math.hypot(player.x-p.x,player.y-p.y)<6){hurt(p.dmg,'被远程法术击中');projectiles.splice(i,1);continue}for(const e of enemies){if(e.dead||p.owner==='enemy')continue;if(Math.hypot(e.x-p.x,e.y-p.y)<(e.type==='boss'?10:6)){let mult=player.perk.crit&&rng()<.2?2:1;damageEnemy(e,p.dmg*mult);if(p.chain){for(const other of enemies)if(other!==e&&!other.dead&&Math.hypot(other.x-e.x,other.y-e.y)<34)damageEnemy(other,p.dmg*.5)}projectiles.splice(i,1);break}}if(p.life<=0||p.x<1||p.x>W-1||p.y<1||p.y>H-1)projectiles.splice(i,1)} }
-function updateEnemies(){for(let i=enemies.length-1;i>=0;i--){let e=enemies[i];if(e.dead){enemies.splice(i,1);continue}e.cool--;let dx=player.x-e.x,dy=player.y-e.y,dist=Math.hypot(dx,dy)||1;if(e.type==='walker'){e.vx+=Math.sign(dx)*.018;e.vx*=.9;e.vx=clamp(e.vx,-.5,.5);e.vy+=.13;if(Math.abs(dx)<60&&e.cool<=0&&Math.abs(dy)<20){e.vy=-2;e.cool=80}moveBody(e,e.vx,e.vy,7,10);if(dist<8)hurt(6,'被幽影撕咬')}else if(e.type==='shooter'){e.vx+=(Math.sin(frame*.03+e.phase)*.02);e.vy+=(Math.cos(frame*.025+e.phase)*.02);e.vx*=.98;e.vy*=.98;moveBody(e,e.vx,e.vy,7,8);if(e.cool<=0&&dist<150){let a=Math.atan2(dy,dx);projectiles.push({x:e.x,y:e.y,vx:Math.cos(a)*2,vy:Math.sin(a)*2,life:120,type:'enemy',dmg:10,color:'#ee7094',rad:2,owner:'enemy'});e.cool=90}}else if(e.type==='bat'){e.x+=Math.sin(frame*.08+e.phase)*.35;e.y+=Math.cos(frame*.07+e.phase)*.3;if(dist<8)hurt(5,'被蝙蝠撞击')}else if(e.type==='boss'){e.vx+=(Math.sin(frame*.02)*.015+Math.sign(dx)*.01);e.vy+=(Math.cos(frame*.018)*.015+Math.sign(dy)*.01);e.vx=clamp(e.vx,-.75,.75);e.vy=clamp(e.vy,-.5,.5);e.x=clamp(e.x+e.vx,18,W-18);e.y=clamp(e.y+e.vy,8,H-18);if(e.cool<=0&&dist<230){let a=Math.atan2(dy,dx);for(let q=-1;q<=1;q++){let aa=a+q*.16;projectiles.push({x:e.x,y:e.y,vx:Math.cos(aa)*1.8,vy:Math.sin(aa)*1.8,life:180,type:'enemy',dmg:15,color:'#d978e8',rad:3,owner:'enemy'})}e.cool=55}if(dist<13)hurt(15,'终焉之眼灼烧')}}}
-function updatePickups(){for(let i=pickups.length-1;i>=0;i--){let p=pickups[i];p.vy+=.06;p.x+=p.vx;p.y+=p.vy;if(SOLID.has(get(p.x,p.y))){p.vx*=.8;p.vy*=-.25;p.y-=.3}if(Math.hypot(p.x-player.x,p.y-player.y)<10){if(p.type==='gold'){runGold+=p.val;toast(`+${p.val} gold`)}else{addSpellToWand(p.spell);toast(`获得法术：${spellName(p.spell)}`)}pickups.splice(i,1)}}}
-function updatePlayer(){let left=keys.a||keys.ArrowLeft,right=keys.d||keys.ArrowRight,jump=keys.w||keys.ArrowUp||keys[' '];let accel=(right?1:0)-(left?1:0);if(accel){player.vx+=accel*.15;player.dir=accel}player.vx*=.82;player.vx=clamp(player.vx,-1.5,1.5);player.onGround=solidAtRect(player.x,player.y+player.h/2+1,player.w,2);if(jump&&player.onGround){player.vy=-3.1;player.onGround=false}hoverHeld=jump&&!player.onGround;if(hoverHeld&&player.hover>0){player.vy=Math.min(player.vy,.2);player.hover-=.7}else{player.vy+=.16;player.hover=Math.min(player.maxHover,player.hover+(player.perk.flight?.44:.22))}player.vy=clamp(player.vy,-4,3.2);moveBody(player,player.vx,0,player.w,player.h);moveBody(player,0,player.vy,player.w,player.h);if(player.inv>0)player.inv--;if(player.wet>0)player.wet--;if(get(player.x,player.y)===MAT.FIRE)hurt(2,'火焰灼烧');if(LIQ.has(get(player.x,player.y))&&get(player.x,player.y)!==MAT.WATER)hurt(.5,'危险液体');for(const w of wands){w.mana=Math.min(w.manaMax,w.mana+w.regen/60);if(w.timer>0)w.timer--}if(pointer.down)cast();}
-function updateWands(){if(keys['1']){currentWand=0;keys['1']=false}if(keys['2']){currentWand=1;keys['2']=false}if(keys['3']){currentWand=2;keys['3']=false}if(keys['4']){currentWand=3;keys['4']=false}}
-function update(){if(gameState!=='play')return;frame++;updateWands();updatePlayer();updateMaterials();updateProjectiles();updateEnemies();updatePickups();cameraY=clamp(player.y-VH*.5,0,H-VH);runDepth=Math.max(runDepth,Math.floor(player.y));const h=world.holy.findIndex(x=>player.y>=x.y0&&player.y<x.y1);if(h>=0&&!holySeen.has(h)){holySeen.add(h);offerPerks(h)}if(player.y>H-90&&enemies.some(e=>e.type==='boss'))toast('终焉之眼正在注视你');if(frame%12===0)updateHud();}
+  function rint(a, b) { return (rng() * (b - a + 1) | 0) + a; }
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+  function phash(x, y) {
+    let n = Math.imul(x | 0, 374761393) + Math.imul(y | 0, 668265263) + (seed | 0);
+    n = Math.imul(n ^ n >>> 13, 1274126177);
+    return (n ^ n >>> 16) >>> 0;
+  }
+  function h2(x, y) { return phash(x, y) / 4294967296; }
+  function n2(x, y) {
+    const xi = Math.floor(x), yi = Math.floor(y);
+    const fx = x - xi, fy = y - yi;
+    const a = h2(xi, yi), b = h2(xi + 1, yi), c = h2(xi, yi + 1), d = h2(xi + 1, yi + 1);
+    const ux = fx * fx * (3 - 2 * fx), uy = fy * fy * (3 - 2 * fy);
+    return a + (b - a) * ux + (c - a) * uy + (a - b - c + d) * ux * uy;
+  }
+  function fbm(x, y) { return n2(x, y) * 0.55 + n2(x * 2.1, y * 2.1) * 0.3 + n2(x * 4.3, y * 4.3) * 0.15; }
 
-function draw(){if(!world){ctx.fillStyle='#080910';ctx.fillRect(0,0,VW,VH);return}const b=biomeAt(cameraY+VH*.5);ctx.fillStyle=b.bg;ctx.fillRect(0,0,VW,VH);let y0=Math.floor(cameraY);for(let sy=0;sy<VH;sy++){let wy=y0+sy;for(let x=0;x<W;x++){let m=get(x,wy);if(m!==MAT.AIR){ctx.fillStyle=MAT_COL[m];ctx.fillRect(x,sy,1,1)}}}for(let p of particles){let sy=p.y-cameraY;if(sy<-5||sy>VH+5)continue;if(p.kind==='boom'){ctx.globalAlpha=p.life/p.max;ctx.strokeStyle='#ffc45e';ctx.beginPath();ctx.arc(p.x,sy,p.rad*(1-p.life/p.max),0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1}else{ctx.fillStyle=p.kind==='blood'?'#c54858':'#f6c95c';ctx.fillRect(p.x|0,sy|0,1,1)}}for(const p of pickups){let sy=p.y-cameraY;ctx.fillStyle=p.type==='gold'?'#f4ca53':'#ad8aff';ctx.fillRect(p.x-2,sy-2,4,4);ctx.fillStyle='#fff';ctx.fillRect(p.x-1,sy-3,1,1)}for(const p of projectiles){let sy=p.y-cameraY;ctx.fillStyle=p.color;ctx.fillRect(p.x-1,sy-1,3,3);if(p.fire){ctx.fillStyle='#ffbc4c';ctx.fillRect(p.x-2,sy,1,1)}}for(const e of enemies){let sy=e.y-cameraY;if(sy<-12||sy>VH+12)continue;ctx.save();ctx.translate(e.x,sy);if(e.type==='boss'){ctx.fillStyle='#b33fbb';ctx.beginPath();ctx.arc(0,0,10,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff29c';ctx.fillRect(-3,-3,6,6);ctx.fillStyle='#4f194f';ctx.fillRect(-1,-1,2,2)}else if(e.type==='shooter'){ctx.fillStyle='#c45762';ctx.fillRect(-4,-4,8,8);ctx.fillStyle='#f2d56f';ctx.fillRect(3,-1,3,2)}else if(e.type==='bat'){ctx.fillStyle='#c8698d';ctx.fillRect(-4,-2,8,4);ctx.fillRect(-6,-1,2,2);ctx.fillRect(4,-1,2,2)}else{ctx.fillStyle='#b7c6b8';ctx.fillRect(-3,-5,6,10);ctx.fillStyle='#222433';ctx.fillRect(-2,-3,4,2)}ctx.restore();if(e.hp<e.max){ctx.fillStyle='#151522';ctx.fillRect(e.x-6,sy-9,12,1);ctx.fillStyle='#df6871';ctx.fillRect(e.x-6,sy-9,12*(e.hp/e.max),1)}}if(!player.dead){let sy=player.y-cameraY;ctx.save();ctx.translate(Math.round(player.x),Math.round(sy));if(player.inv%4<2)ctx.globalAlpha=.45;ctx.fillStyle='#e3b9da';ctx.fillRect(-2,-6,4,4);ctx.fillStyle='#5564a4';ctx.fillRect(-3,-2,6,7);ctx.fillStyle='#252945';ctx.fillRect(-4,5,3,3);ctx.fillRect(1,5,3,3);ctx.fillStyle='#f4d48b';ctx.fillRect(player.dir>0?3:-4,-1,2,2);ctx.restore()}ctx.fillStyle='#fff';ctx.globalAlpha=.08;for(let i=0;i<12;i++)ctx.fillRect(rint(0,VW),rint(0,VH),1,1);ctx.globalAlpha=1;drawHolyOverlay();}
-function drawHolyOverlay(){for(const h of world.holy){let sy=h.y0-cameraY;if(sy>VH||sy+44<0)continue;ctx.fillStyle='#d4b5e91a';ctx.fillRect(44,Math.max(0,sy+4),232,38);ctx.strokeStyle='#b795d855';ctx.strokeRect(44,sy+4,232,38)}}
+  function ix(x, y) { return y * W + x; }
+  function inside(x, y) { return x >= 0 && y >= 0 && x < W && y < H; }
+  function g(x, y) {
+    x = x | 0; y = y | 0;
+    if (x < 0 || y < 0 || x >= W || y >= H) return DENSE;
+    return cells[y * W + x];
+  }
+  function s(x, y, m, lf) {
+    x = x | 0; y = y | 0;
+    if (x < 0 || y < 0 || x >= W || y >= H) return;
+    const i = y * W + x;
+    cells[i] = m;
+    life[i] = lf == null ? 0 : lf;
+  }
+  function swapc(i, j) {
+    const t = cells[i]; cells[i] = cells[j]; cells[j] = t;
+    const u = life[i]; life[i] = life[j]; life[j] = u;
+    stampA[j] = stamp;
+  }
+  function isSolid(m) { const t = TYPE[m]; return t === T_STATIC || t === T_POWDER; }
+  function isLiq(m) { return TYPE[m] === T_LIQUID; }
+  function isGas(m) { return TYPE[m] === T_GAS; }
 
-function updateHud(){const hp=clamp(player.hp/player.maxHp,0,1),ma=clamp(wands[currentWand].mana/wands[currentWand].manaMax,0,1),ho=clamp(player.hover/player.maxHover,0,1);$('hpFill').style.width=(hp*100)+'%';$('manaFill').style.width=(ma*100)+'%';$('hoverFill').style.width=(ho*100)+'%';$('hpText').textContent=`${Math.ceil(Math.max(0,player.hp))}/${player.maxHp}`;$('manaText').textContent=Math.floor(wands[currentWand].mana);$('depth').textContent=`${Math.floor(runDepth)}m`;$('gold').textContent=`${runGold} gold`;$('biome').textContent=biomeAt(player.y).name;let html='';wands.forEach((w,i)=>{html+=`<div class="wand-chip ${i===currentWand?'active':''}"><b>${i+1} · ${w.name}</b><span>${w.timer>0?'冷却中':'就绪'} · ${Math.floor(w.mana)}/${w.manaMax}</span><div class="slotdots">${w.slots.map(s=>`<s class="on" title="${spellName(s.id)}"></s>`).join('')}</div></div>`});$('wandHud').innerHTML=html}
-function toast(text){const el=$('toast');el.textContent=text;el.style.opacity=1;logTimer=90}
-function tickToast(){if(logTimer>0){logTimer--;if(!logTimer)$('toast').style.opacity=0}}
-function offerPerks(){const defs=[{name:'血肉护甲',desc:'受到的伤害降低 50%。',apply:()=>player.perk.resist=true},{name:'玻璃大炮',desc:'法术伤害与爆炸范围翻倍，但最大生命减半。',apply:()=>{player.perk.power=true;player.maxHp=50;player.hp=Math.min(player.hp,50)}},{name:'暴击直觉',desc:'20% 几率造成双倍法术伤害。',apply:()=>player.perk.crit=true},{name:'长久飞行',desc:'悬浮燃料回复速度翻倍。',apply:()=>player.perk.flight=true},{name:'炼金之血',desc:'敌人死亡时额外掉落金币和血液。',apply:()=>player.perk.alchemy=true},{name:'魔杖工匠',desc:'在任何地方按 E 都能编辑魔杖。',apply:()=>player.perk.tinker=true}];perkChoices=[defs[rint(0,defs.length-1)],defs[rint(0,defs.length-1)],defs[rint(0,defs.length-1)]];while(new Set(perkChoices).size<3)perkChoices=[defs[rint(0,defs.length-1)],defs[rint(0,defs.length-1)],defs[rint(0,defs.length-1)]];renderPerks();}
-function renderPerks(){$('perkPanel').innerHTML=`<div class="panel-title"><b>HOLY MOUNTAIN · 选择一项永久祝福</b><span>点击卡片或按 1 / 2 / 3</span></div><div class="perk-grid">${perkChoices.map((p,i)=>`<button class="perk" data-perk="${i}"><b>${i+1}. ${p.name}</b><small>${p.desc}</small></button>`).join('')}</div>`;$('perkPanel').classList.remove('hide')}
-function choosePerk(i){let p=perkChoices[i];if(!p)return;p.apply();toast(`获得祝福：${p.name}`);perkChoices=[];$('perkPanel').classList.add('hide');sound('perk')}
-function renderWands(){$('wandPanel').innerHTML=`<div class="panel-title"><b>魔杖编辑台</b><span>点击两个法术交换位置 · E 关闭</span></div><div class="wand-grid">${wands.map((w,wi)=>`<div class="wand-card ${wi===currentWand?'active':''}"><h3>${wi+1}. ${w.name}</h3><div class="stats"><span>Cast ${w.castDelay}</span><span>Recharge ${w.recharge}</span><span>Mana ${Math.floor(w.mana)}/${w.manaMax}</span><span>Regen ${w.regen}/s</span></div><div class="spell-row">${w.slots.map((s,si)=>`<button class="spell-btn" data-w="${wi}" data-s="${si}">${spellName(s.id)}</button>`).join('')}</div></div>`).join('')}<button class="primary" id="addSpell">把随机法术加入当前魔杖</button></div>`;$('wandPanel').classList.remove('hide')}
-let selectedSlot=null;function handleWandClick(e){let b=e.target.closest('.spell-btn');if(b){let wi=+b.dataset.w,si=+b.dataset.s;if(selectedSlot){let [a,c]=[selectedSlot,{wi,si}];[wands[a.wi].slots[a.si],wands[c.wi].slots[c.si]]=[wands[c.wi].slots[c.si],wands[a.wi].slots[a.si]];selectedSlot=null;renderWands()}else{selectedSlot={wi,si};b.classList.add('selected')}}if(e.target.id==='addSpell'){wands[currentWand].slots.push({id:rng()<.65?randomSpell():['triple','homing','fire','explosive','bouncy','critical','mana'][rint(0,6)]});renderWands()}}
-function addSpellToWand(id){wands[currentWand].slots.push({id});if(wands[currentWand].slots.length>8)wands[currentWand].slots.shift()}
+  function biomeAt(y) {
+    if (y < SURF) return -1;
+    const t = y - SURF;
+    const span = BH + HH;
+    const i = Math.min(4, t / span | 0);
+    const o = t % span;
+    if (i < 4 && o >= BH) return 10 + i;
+    return Math.min(4, i);
+  }
+  function biomeObj(y) {
+    const b = biomeAt(y);
+    if (b < 0) return { name: '井口', en: 'MOUTH', bg: [8, 10, 22], amb: 48, tint: [1, 1, 1] };
+    if (b >= 10) return { name: '圣所', en: 'SANCTUM', bg: [16, 16, 22], amb: 52, tint: [1, 1, 1] };
+    return BIOMES[b];
+  }
+  function inHoly(y) { return biomeAt(y) >= 10; }
 
-function startGame(){seed=Date.now()^Math.floor(Math.random()*1e9);rng=makeRng(seed);setupWands();generateWorld();gameState='play';$('title').classList.add('hide');$('dead').classList.add('hide');$('win').classList.add('hide');$('wandPanel').classList.add('hide');$('perkPanel').classList.add('hide');updateHud();toast(`种子 ${seed>>>0}`);sound('start')}
-function loop(){update();draw();tickToast();requestAnimationFrame(loop)}
-function sound(kind){try{let ac=sound.ac||(sound.ac=new AudioContext()),o=ac.createOscillator(),g=ac.createGain();let f={cast:420,boom:90,perk:660,start:240,dead:70,win:880}[kind]||300;o.frequency.value=f;o.type=kind==='boom'?'sawtooth':'square';g.gain.value=.025;o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+.06)}catch(e){}}
+  function fillDisk(cx, cy, r, m, lf) {
+    const r2 = r * r;
+    for (let y = -r; y <= r; y++) for (let x = -r; x <= r; x++)
+      if (x * x + y * y <= r2) s(cx + x, cy + y, m, lf);
+  }
+  function fillRect(x0, y0, x1, y1, m) {
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) s(x, y, m);
+  }
+  function carve(x0, y0, x1, y1) {
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+      const m = g(x, y);
+      if (m !== DENSE && m !== BRICK) s(x, y, AIR);
+    }
+  }
 
-window.addEventListener('keydown',e=>{keys[e.key]=true;if(['ArrowLeft','ArrowRight','ArrowUp',' ','a','d','w'].includes(e.key))e.preventDefault();if(e.key==='e'&&!perkChoices.length&&(player?.perk.tinker||inHoly(player?.y||0))){editMode=!editMode;if(editMode)renderWands();else $('wandPanel').classList.add('hide')}if(perkChoices.length&&['1','2','3'].includes(e.key))choosePerk(+e.key-1)});
-window.addEventListener('keyup',e=>keys[e.key]=false);
-canvas.addEventListener('pointermove',e=>{const r=canvas.getBoundingClientRect();pointer.x=clamp((e.clientX-r.left)/r.width*VW,0,VW);pointer.y=clamp((e.clientY-r.top)/r.height*VH,0,VH);pointer.active=true});canvas.addEventListener('pointerdown',e=>{if(gameState==='play'){pointer.down=true;canvas.setPointerCapture(e.pointerId);sound('cast')}});canvas.addEventListener('pointerup',()=>pointer.down=false);canvas.addEventListener('pointerleave',()=>{if(!matchMedia('(pointer:coarse)').matches)pointer.down=false});
-['leftBtn','rightBtn','jumpBtn'].forEach(id=>{let k=id==='leftBtn'?'a':id==='rightBtn'?'d':'w',b=$(id);b.addEventListener('pointerdown',e=>{e.preventDefault();keys[k]=true});b.addEventListener('pointerup',e=>{e.preventDefault();keys[k]=false});b.addEventListener('pointerleave',()=>keys[k]=false)});$('fireBtn').addEventListener('pointerdown',e=>{e.preventDefault();pointer.down=true});$('fireBtn').addEventListener('pointerup',()=>pointer.down=false);$('wandBtn').addEventListener('click',()=>{currentWand=(currentWand+1)%wands.length;updateHud()});
-$('startBtn').addEventListener('click',startGame);$('restartBtn').addEventListener('click',startGame);$('winBtn').addEventListener('click',startGame);$('perkPanel').addEventListener('click',e=>{let b=e.target.closest('[data-perk]');if(b)choosePerk(+b.dataset.perk)});$('wandPanel').addEventListener('click',handleWandClick);
-loop();
+  function solidMatFor(b, x, y) {
+    const n = n2(x * 0.11, y * 0.09);
+    if (b === 0) {
+      if (n > 0.72) return COAL;
+      if (n2(x * 0.2, y * 0.2) > 0.84) return GOLD;
+      if (n < 0.38) return DIRT;
+      if (n2(x * 0.07, y * 0.13) > 0.78) return MOSS;
+      return ROCK;
+    }
+    if (b === 1) {
+      if (n > 0.55) return COAL;
+      if (n2(x * 0.16, y * 0.16) > 0.8) return OIL;
+      if (n < 0.28) return DIRT;
+      return ROCK;
+    }
+    if (b === 2) {
+      if (n > 0.7) return FUNGUS;
+      if (n2(x * 0.18, y * 0.1) > 0.82) return CRYSTAL;
+      if (n < 0.35) return DIRT;
+      if (n2(x * 0.09, y * 0.2) > 0.76) return SLIME;
+      return ROCK;
+    }
+    if (b === 3) {
+      if (n > 0.6) return SNOWROCK;
+      if (n < 0.32) return ICE;
+      if (n2(x * 0.14, y * 0.14) > 0.7) return SNOW;
+      return ROCK;
+    }
+    if (n > 0.7) return LAVA;
+    if (n < 0.3) return STONE;
+    if (n2(x * 0.1, y * 0.1) > 0.8) return METAL;
+    return ROCK;
+  }
+
+  function generateWorld(sd) {
+    seed = sd >>> 0;
+    rng = makeRng(seed);
+    cells = new Uint8Array(W * H);
+    life = new Uint8Array(W * H);
+    stampA = new Uint8Array(W * H);
+    cells.fill(AIR);
+    worldLights = [];
+    holy = [];
+    enemies = [];
+    projectiles = [];
+    particles = [];
+    pickups = [];
+    flasks = [];
+    holySeen = new Set();
+
+    for (let y = 0; y < H; y++) {
+      const b = biomeAt(y);
+      for (let x = 0; x < W; x++) {
+        if (x < 4 || x > W - 5 || y > H - 6) { s(x, y, DENSE); continue; }
+        if (y < 18) continue;
+        if (b >= 10) { s(x, y, BRICK); continue; }
+        if (b < 0) {
+          const ground = SURF - 8 + Math.sin(x * 0.04) * 4 + n2(x * 0.08, 2) * 6;
+          if (y > ground) s(x, y, y > ground + 5 ? ROCK : (rng() < 0.3 ? GRASS : DIRT));
+          continue;
+        }
+        const nx = x * 0.028, ny = y * 0.02;
+        const cave = fbm(nx, ny) + Math.sin(x * 0.09 + y * 0.017) * 0.12 + Math.sin((x + y) * 0.011) * 0.08;
+        const edge = (x < 14 ? (14 - x) / 14 : x > W - 15 ? (x - (W - 15)) / 14 : 0);
+        let solid = cave < 0.46 + edge * 0.35;
+        const shaft = Math.abs(x - (W * 0.5 + Math.sin(y * 0.03) * 28)) < 10 + n2(y * 0.02, 4) * 8;
+        if (shaft && y % (BH + HH) < BH - 8) solid = false;
+        if (y % 47 < 3 && Math.abs(x - W / 2) < 40) solid = false;
+        if (solid) s(x, y, solidMatFor(b, x, y));
+        else if (rng() < 0.012) {
+          if (b === 0) s(x, y, rng() < 0.5 ? WATER : SAND);
+          else if (b === 1) s(x, y, rng() < 0.55 ? OIL : GUNP);
+          else if (b === 2) s(x, y, rng() < 0.5 ? TOXIC : SLIME);
+          else if (b === 3) s(x, y, rng() < 0.6 ? WATER : SNOW);
+          else s(x, y, rng() < 0.7 ? LAVA : ASH);
+        }
+      }
+    }
+
+    for (let i = 0; i < 5; i++) {
+      const y0 = SURF + i * (BH + HH);
+      const y1 = y0 + BH;
+      for (let k = 0; k < 7; k++) {
+        const cx = rint(30, W - 30), cy = rint(y0 + 20, y1 - 20), r = rint(8, 18);
+        carve(cx - r, cy - r, cx + r, cy + r);
+        if (i === 0 && rng() < 0.5) fillDisk(cx, cy + r - 2, r * 0.6, WATER);
+        if (i === 1 && rng() < 0.5) fillDisk(cx, cy + r - 2, r * 0.5, OIL);
+        if (i === 2 && rng() < 0.45) fillDisk(cx, cy + r - 2, r * 0.5, TOXIC);
+        if (i === 3 && rng() < 0.5) fillDisk(cx, cy + r - 2, r * 0.55, WATER);
+        if (i === 4 && rng() < 0.6) fillDisk(cx, cy + r - 2, r * 0.7, LAVA);
+      }
+      if (i === 0) {
+        for (let bx = 40; bx < W - 40; bx += 28) {
+          const by = y0 + rint(30, BH - 40);
+          for (let yy = 0; yy < 22; yy++) s(bx, by + yy, WOOD);
+          for (let xx = -6; xx <= 6; xx++) s(bx + xx, by, WOOD);
+        }
+      }
+      if (i === 2) {
+        for (let k = 0; k < 18; k++) {
+          const mx = rint(20, W - 20), my = rint(y0 + 10, y1 - 10);
+          if (g(mx, my + 1) !== AIR && g(mx, my) === AIR) {
+            s(mx, my, FUNGUS); s(mx, my - 1, FUNGUS);
+            if (rng() < 0.5) s(mx, my - 2, CRYSTAL);
+            worldLights.push({ x: mx, y: my - 1, r: 28, i: 140, cr: 200, cg: 70, cb: 210 });
+          }
+        }
+      }
+      for (let t = 0; t < 10; t++) {
+        const tx = rint(16, W - 16), ty = rint(y0 + 12, y1 - 12);
+        if (g(tx, ty) === AIR && isSolid(g(tx, ty + 1))) {
+          s(tx, ty, WOOD); s(tx, ty - 1, FIRE, 80);
+          worldLights.push({ x: tx, y: ty - 1, r: 42, i: 190, cr: 255, cg: 160, cb: 50 });
+        }
+      }
+    }
+
+    for (let i = 0; i < 4; i++) {
+      const y0 = SURF + (i + 1) * BH + i * HH;
+      const y1 = y0 + HH;
+      holy.push({ y0, y1, claimed: false, i });
+      fillRect(0, y0, W - 1, y1, BRICK);
+      carve(28, y0 + 6, W - 29, y1 - 3);
+      for (let x = 28; x < W - 28; x++) {
+        s(x, y0 + 5, BRICK);
+        s(x, y1 - 2, BRICK);
+        if ((x + i * 3) % 7 === 0) s(x, y0 + 4, GOLD);
+      }
+      fillRect(36, y1 - 10, 70, y1 - 3, WATER);
+      fillRect(W - 71, y1 - 10, W - 37, y1 - 3, WATER);
+      fillRect(W / 2 - 16, y1 - 8, W / 2 + 16, y1 - 4, BRICK);
+      worldLights.push({ x: 50, y: y0 + 14, r: 50, i: 160, cr: 140, cg: 200, cb: 255 });
+      worldLights.push({ x: W - 50, y: y0 + 14, r: 50, i: 160, cr: 140, cg: 200, cb: 255 });
+      worldLights.push({ x: W / 2, y: y0 + 16, r: 46, i: 180, cr: 255, cg: 210, cb: 120 });
+      pickups.push({ type: 'heart', x: W / 2 - 22, y: y0 + 20, vx: 0, vy: 0, val: 0 });
+    }
+
+    carve(W / 2 - 28, 16, W / 2 + 28, SURF + 36);
+    for (let x = W / 2 - 30; x < W / 2 + 30; x++) s(x, SURF + 36, DIRT);
+    for (let y = 20; y < SURF; y++) s(W / 2, y, AIR);
+
+    const by = SURF + 4 * (BH + HH) + 40;
+    carve(40, H - 90, W - 40, H - 12);
+    fillRect(50, H - 18, W - 50, H - 8, LAVA);
+    spawnEnemy('wellseye', W / 2, H - 70);
+
+    for (let i = 0; i < 5; i++) {
+      const y0 = SURF + i * (BH + HH) + 40;
+      const y1 = y0 + BH - 50;
+      const n = 5 + i * 3;
+      for (let k = 0; k < n; k++) {
+        const x = rint(24, W - 24), y = rint(y0, y1);
+        if (g(x, y) !== AIR) continue;
+        const roll = rng();
+        let type = 'tusk';
+        if (roll < 0.18) type = 'burstling';
+        else if (roll < 0.4) type = 'nighthook';
+        else if (roll < 0.62) type = 'ashgun';
+        else if (roll < 0.74 && i >= 1) type = 'borewyrm';
+        spawnEnemy(type, x, y);
+      }
+      for (let k = 0; k < 5; k++) {
+        const x = rint(24, W - 24), y = rint(y0, y1);
+        if (g(x, y) !== AIR) continue;
+        const t = rng();
+        if (t < 0.45) pickups.push({ type: 'gold', x, y, vx: 0, vy: 0, val: rint(4, 16) });
+        else if (t < 0.65) pickups.push({ type: 'heart', x, y, vx: 0, vy: 0, val: 25 });
+        else if (t < 0.82) pickups.push({ type: 'spell', x, y, vx: 0, vy: 0, spell: randomSpell(i) });
+        else if (t < 0.93) pickups.push({ type: 'flask', x, y, vx: 0, vy: 0, mat: [WATER, OIL, ACID, BLOOD, TOXIC][rint(0, 4)] });
+        else pickups.push({ type: 'chest', x, y, vx: 0, vy: 0, val: rint(12, 40) });
+      }
+      if (rng() < 0.85) {
+        const x = rint(40, W - 40), y = rint(y0 + 20, y1 - 20);
+        if (g(x, y) === AIR) pickups.push({ type: 'wand', x, y, vx: 0, vy: 0, wand: randomWand(i + 1) });
+      }
+    }
+
+    spawnEnemy('tusk', W / 2 + 18, SURF + 28);
+
+    player = {
+      x: W / 2, y: SURF + 30, vx: 0, vy: 0, w: 6, h: 10,
+      hp: 100, maxHp: 100, hover: 100, maxHover: 100,
+      inv: 0, dir: 1, wet: 0, burning: 0, poison: 0, toxic: 0, oiled: 0, air: 90,
+      dead: false, perk: {}, kills: 0, onGround: false, flash: 0
+    };
+    run = { gold: 0, depth: 0, kills: 0, frames: 0, casts: 0, seed, t0: Date.now(), cause: null };
+    camY = 0;
+    frame = 0;
+    shakeMag = 0;
+  }
+
+  function randomSpell(tier) {
+    const pool = PROJ_IDS.concat(MOD_IDS);
+    if (tier > 0) pool.push.apply(pool, TRIG_IDS.concat(MULTI_IDS));
+    return pool[rint(0, pool.length - 1)];
+  }
+  function randomWand(tier) {
+    const cap = 3 + Math.min(4, tier);
+    const slots = [];
+    const n = rint(1, cap);
+    for (let i = 0; i < n; i++) slots.push(randomSpell(tier));
+    while (slots.length < cap) slots.push(null);
+    return makeWand(['棘杖', '余烬', '霜骨', '井灯', '裂隙', '夜歌'][rint(0, 5)], slots, {
+      castDelay: 8 + rint(0, 10), recharge: 18 + rint(0, 24),
+      manaMax: 90 + tier * 30 + rint(0, 40), regen: 18 + tier * 6,
+      shuffle: rng() < 0.3, spellsPerCast: rng() < 0.15 ? 2 : 1, spread: rint(0, 8)
+    });
+  }
+  function makeWand(name, slots, st) {
+    st = st || {};
+    const manaMax = st.manaMax || 120;
+    return {
+      name, slots: slots.slice(),
+      castDelay: st.castDelay || 10, recharge: st.recharge || 28,
+      mana: manaMax, manaMax, regen: st.regen || 22,
+      shuffle: !!st.shuffle, spellsPerCast: st.spellsPerCast || 1,
+      spread: st.spread || 0, speed: st.speed || 1,
+      delayT: 0, rechT: 0, cursor: 0, wrapped: false
+    };
+  }
+  function setupWands() {
+    wands = [
+      makeWand('晨星', ['spark', 'spark', 'flame', null], { castDelay: 8, recharge: 22, manaMax: 130, regen: 28 }),
+      makeWand('矿镐', ['bomb', null], { castDelay: 6, recharge: 8, manaMax: 90, regen: 12, shuffle: true }),
+      makeWand('空槽', [null, null, null], { castDelay: 12, recharge: 30, manaMax: 110, regen: 20 }),
+      makeWand('空槽', [null, null, null, null], { castDelay: 14, recharge: 36, manaMax: 150, regen: 24 })
+    ];
+    inv = ['homing', 'triple'];
+    curWand = 0;
+  }
+  function spawnEnemy(type, x, y) {
+    const d = ENEMY_DEF[type];
+    if (!d) return;
+    const e = {
+      type, name: d.name, x, y, vx: 0, vy: 0, w: d.w, h: d.h,
+      hp: d.hp, max: d.hp, dmg: d.dmg, kind: d.kind,
+      cool: rint(20, 80), dir: rng() < 0.5 ? -1 : 1, phase: rng() * 12,
+      dead: false, flash: 0, fuse: 0, segs: []
+    };
+    if (type === 'borewyrm') {
+      for (let i = 0; i < 6; i++) e.segs.push({ x: x - i * 4, y });
+    }
+    let yy = y;
+    if (g(x, y) !== AIR) {
+      for (let k = 0; k < 40 && g(x, yy) !== AIR; k++) yy--;
+      e.y = yy;
+    }
+    enemies.push(e);
+  }
+
+  function canOcc(x, y, m) {
+    if (!inside(x, y)) return false;
+    const n = g(x, y);
+    if (n === AIR) return true;
+    if (n === DENSE || n === BRICK) return false;
+    const tm = TYPE[m], tn = TYPE[n];
+    if (tm === T_LIQUID || tm === T_POWDER) {
+      if (tn === T_GAS || tn === T_FIRE) return true;
+      if (tn === T_LIQUID && DEN[m] > DEN[n] + 0.04) return true;
+    }
+    if (tm === T_GAS && (tn === T_FIRE || (tn === T_GAS && DEN[m] < DEN[n] - 0.02))) return true;
+    return false;
+  }
+  function tryMove(x, y, nx, ny) {
+    if (!canOcc(nx, ny, g(x, y))) return false;
+    const i = ix(x, y), j = ix(nx, ny);
+    if (stampA[j] === stamp) return false;
+    swapc(i, j);
+    return true;
+  }
+
+  function reactAt(x, y, m) {
+    for (let k = 0; k < 4; k++) {
+      const nx = x + N4[k][0], ny = y + N4[k][1];
+      const n = g(nx, ny);
+      if (m === LAVA) {
+        if (n === WATER || n === TOXIC) { s(x, y, STONE); s(nx, ny, STEAM, 50); return true; }
+        if (n === BLOOD) { s(x, y, STONE); s(nx, ny, STEAM, 40); return true; }
+        if (n === OIL || n === SLIME) { s(nx, ny, FIRE, 40); return false; }
+        if (FLAM[n] > 40 && rng() < 0.08) { s(nx, ny, FIRE, 30); return false; }
+        if (n === ICE || n === SNOW) { s(nx, ny, STEAM, 40); return false; }
+      }
+      if (m === FIRE) {
+        if (n === WATER || n === BLOOD) { s(x, y, STEAM, 40); return true; }
+        if (n === ICE) { s(nx, ny, WATER); return false; }
+        if (n === SNOW) { s(nx, ny, STEAM, 30); return false; }
+        if (n === GUNP) { explode(nx, ny, 12, 28, 14000); return true; }
+        if (FLAM[n] > 0 && rng() < FLAM[n] / 900) {
+          s(nx, ny, FIRE, 20 + (FLAM[n] >> 2));
+          if (n === OIL) s(x, y + (rng() < 0.5 ? 0 : -1), FGAS, 30);
+        }
+        if (n === WOOD || n === WOODP || n === COAL || n === MOSS || n === VINE || n === GRASS || n === FUNGUS) {
+          if (rng() < 0.06) s(nx, ny, FIRE, 28);
+        }
+      }
+      if (m === ACID) {
+        if (n !== DENSE && n !== BRICK && n !== AIR && n !== ACID && n !== PGAS) {
+          const rate = TYPE[n] === T_STATIC ? (HARD[n] >= 12 ? 0.05 : 0.55) : (TYPE[n] === T_POWDER ? 0.45 : 0.12);
+          if (rng() < rate) s(nx, ny, rng() < 0.35 ? PGAS : AIR, 18);
+        }
+        if (n === METAL && rng() < 0.08) s(nx, ny, RUST);
+      }
+      if (m === WATER) {
+        if (n === TOXIC && rng() < 0.08) s(nx, ny, WATER);
+        if (n === FIRE) s(nx, ny, STEAM, 35);
+        if (n === LAVA) { s(nx, ny, STONE); s(x, y, STEAM, 50); return true; }
+      }
+      if (m === BLOOD && n === PGAS && rng() < 0.1) { s(nx, ny, SLIME); }
+    }
+    return false;
+  }
+
+  function updateMaterials() {
+    if (!cells) return;
+    stamp = (stamp + 1) & 255; if (stamp === 0) stamp = 1;
+    const y0 = clamp((camY | 0) - 24, 1, H - 2);
+    const y1 = clamp((camY | 0) + VH + 28, 2, H - 2);
+
+    for (let y = y1; y >= y0; y--) {
+      const ltr = ((y + frame) & 1) === 0;
+      for (let k = 0; k < W; k++) {
+        const x = ltr ? k : W - 1 - k;
+        const i = y * W + x;
+        if (stampA[i] === stamp) continue;
+        const m = cells[i];
+        if (m === AIR || m === DENSE || m === BRICK) continue;
+        const t = TYPE[m];
+        if (t === T_GAS) continue;
+        if (reactAt(x, y, m)) continue;
+        if (t === T_FIRE) {
+          let lf = life[i] || 18;
+          lf--;
+          if (g(x, y + 1) === WATER || g(x, y - 1) === WATER || g(x + 1, y) === WATER || g(x - 1, y) === WATER) {
+            s(x, y, STEAM, 40); continue;
+          }
+          if (lf <= 0) { s(x, y, rng() < 0.65 ? SMOKE : ASH, 40); continue; }
+          life[i] = lf;
+          if (rng() < 0.12 && g(x, y - 1) === AIR) s(x, y - 1, SMOKE, 24);
+          if (rng() < 0.04 && g(x, y + 1) === AIR) s(x, y + 1, EMBER, 12);
+          if (rng() < 0.3) tryMove(x, y, x + (rng() < 0.5 ? -1 : 1), y - 1);
+          continue;
+        }
+        if (t === T_POWDER) {
+          if (tryMove(x, y, x, y + 1)) continue;
+          const d = rng() < 0.5 ? -1 : 1;
+          if (tryMove(x, y, x + d, y + 1)) continue;
+          if (tryMove(x, y, x - d, y + 1)) continue;
+          continue;
+        }
+        if (t === T_LIQUID) {
+          if (tryMove(x, y, x, y + 1)) continue;
+          const d = rng() < 0.5 ? -1 : 1;
+          if (tryMove(x, y, x + d, y + 1)) continue;
+          if (tryMove(x, y, x - d, y + 1)) continue;
+          if (tryMove(x, y, x + d, y)) continue;
+          if (tryMove(x, y, x - d, y)) continue;
+          continue;
+        }
+        if (m === ICE && rng() < 0.002) {
+          if (g(x, y + 1) === LAVA || g(x, y - 1) === FIRE) s(x, y, WATER);
+        }
+      }
+    }
+    for (let y = y0; y <= y1; y++) {
+      const ltr = ((y + frame) & 1) === 0;
+      for (let k = 0; k < W; k++) {
+        const x = ltr ? k : W - 1 - k;
+        const i = y * W + x;
+        if (stampA[i] === stamp) continue;
+        const m = cells[i];
+        if (TYPE[m] !== T_GAS) continue;
+        let lf = life[i];
+        if (lf > 0) {
+          lf--;
+          life[i] = lf;
+          if (lf === 0) {
+            if (m === STEAM && rng() < 0.45) s(x, y, WATER);
+            else s(x, y, AIR);
+            continue;
+          }
+        } else if (rng() < 0.01) { s(x, y, m === STEAM ? WATER : AIR); continue; }
+        if (m === FGAS && (g(x, y + 1) === FIRE || g(x, y - 1) === FIRE) && rng() < 0.2) {
+          s(x, y, FIRE, 16); continue;
+        }
+        if (tryMove(x, y, x, y - 1)) continue;
+        const d = rng() < 0.5 ? -1 : 1;
+        if (tryMove(x, y, x + d, y - 1)) continue;
+        if (tryMove(x, y, x - d, y - 1)) continue;
+        if (tryMove(x, y, x + d, y)) continue;
+        if (tryMove(x, y, x - d, y)) continue;
+      }
+    }
+  }
+
+  function explode(x, y, rad, dmg, energy) {
+    x = x | 0; y = y | 0;
+    shakeMag = Math.max(shakeMag, Math.min(12, rad * 0.45));
+    sfx('boom');
+    energy = energy || rad * 9000;
+    const rays = 20;
+    for (let a = 0; a < rays; a++) {
+      let e = energy;
+      const ang = a * Math.PI * 2 / rays + rng() * 0.1;
+      const dx = Math.cos(ang), dy = Math.sin(ang);
+      for (let t = 0; t <= rad; t++) {
+        const gx = (x + dx * t) | 0, gy = (y + dy * t) | 0;
+        const m = g(gx, gy);
+        if (m === DENSE) break;
+        e -= HARD[m] * 700 + 180;
+        if (m === BRICK) e -= 8000;
+        if (e <= 0) break;
+        if (m !== AIR && m !== BRICK && m !== DENSE) {
+          if (FLAM[m] > 40 && rng() < 0.35) s(gx, gy, FIRE, 18);
+          else if (m === WATER) s(gx, gy, STEAM, 30);
+          else s(gx, gy, t < rad * 0.35 && rng() < 0.2 ? FIRE : AIR, 12);
+        } else if (m === AIR && t < 3 && rng() < 0.3) s(gx, gy, FIRE, 10);
+      }
+    }
+    particles.push({ x, y, vx: 0, vy: 0, life: 14, max: 14, kind: 'boom', rad, r: 255, g: 180, b: 60 });
+    for (let i = 0; i < 10; i++) particles.push({
+      x, y, vx: (rng() - 0.5) * 4, vy: (rng() - 0.5) * 4 - 1, life: 12 + rint(0, 10), max: 22,
+      kind: 'spark', r: 255, g: 160 + rint(0, 60), b: 40
+    });
+    for (const e of enemies) {
+      if (e.dead) continue;
+      const d = Math.hypot(e.x - x, e.y - y);
+      if (d < rad + 8) hurtEnemy(e, dmg * (1 - d / (rad + 8)), 'explode');
+    }
+    if (player && !player.dead) {
+      const d = Math.hypot(player.x - x, player.y - y);
+      if (d < rad + 6) hurt(10 + dmg * 0.15 * (1 - d / (rad + 6)), 'explode', '炸死 · 冲击波撕碎了身体');
+    }
+  }
+
+  function solidAtRect(x, y, w, h) {
+    const l = Math.floor(x - w / 2), r = Math.floor(x + w / 2);
+    const t = Math.floor(y - h / 2), b = Math.floor(y + h / 2);
+    for (let yy = t; yy <= b; yy++) for (let xx = l; xx <= r; xx++) if (isSolid(g(xx, yy))) return true;
+    return false;
+  }
+  function moveBody(o, dx, dy, w, h) {
+    if (dx) {
+      const nx = o.x + dx;
+      if (!solidAtRect(nx, o.y, w, h)) o.x = nx; else o.vx *= -0.1;
+    }
+    if (dy) {
+      const ny = o.y + dy;
+      if (!solidAtRect(o.x, ny, w, h)) o.y = ny; else {
+        if (dy > 0) o.onGround = true;
+        o.vy = 0;
+      }
+    }
+    o.x = clamp(o.x, 6, W - 6);
+    o.y = clamp(o.y, 8, H - 8);
+  }
+
+  function aimVec() {
+    let ax, ay;
+    if (pointer.active) {
+      ax = pointer.x - player.x;
+      ay = pointer.y + camY - player.y;
+    } else {
+      ax = player.dir * 16; ay = 0;
+    }
+    const len = Math.hypot(ax, ay) || 1;
+    return { x: ax / len, y: ay / len };
+  }
+
+  function cloneShot(s) {
+    return {
+      dmgMul: s.dmgMul, spdMul: s.spdMul, spread: s.spread, homing: s.homing, bounce: s.bounce,
+      fire: s.fire, expl: s.expl, light: s.light, pierce: s.pierce, drill: s.drill,
+      freeze: s.freeze, acid: s.acid, delay: s.delay, rech: s.rech
+    };
+  }
+  function baseShot(w) {
+    return {
+      dmgMul: player.perk.power ? 2 : 1, spdMul: w.speed || 1, spread: w.spread || 0,
+      homing: 0, bounce: 0, fire: 0, expl: 0, light: 1, pierce: 0, drill: 0,
+      freeze: 0, acid: 0, delay: 0, rech: 0
+    };
+  }
+  function drawOne(w) {
+    let guard = 0;
+    const n = w.slots.length;
+    if (!n) return null;
+    while (guard++ < n + 2) {
+      if (w.cursor >= n) { w.wrapped = true; w.cursor = 0; }
+      const id = w.slots[w.cursor++];
+      if (id) return SPELLS[id] || null;
+    }
+    return null;
+  }
+  function applyMod(shot, sp) {
+    if (sp.homing) shot.homing += sp.homing;
+    if (sp.fire) shot.fire = 1;
+    if (sp.bounce) shot.bounce = 1;
+    if (sp.dmgMul) shot.dmgMul *= sp.dmgMul;
+    if (sp.spdMul) shot.spdMul *= sp.spdMul;
+    if (sp.lightAdd) shot.light += sp.lightAdd;
+    if (sp.expl) shot.expl += sp.expl;
+    if (sp.spr) shot.spread += sp.spr;
+  }
+  function collectTemplates(w, shot, out, budget) {
+    if (budget.n-- <= 0) return;
+    const sp = drawOne(w);
+    if (!sp) return;
+    if (w.mana < (sp.mana || 0)) return;
+    w.mana -= sp.mana || 0;
+    shot.delay += sp.delay || 0;
+    shot.rech += sp.rec || 0;
+    if (sp.kind === 'mod') {
+      applyMod(shot, sp);
+      collectTemplates(w, shot, out, budget);
+      return;
+    }
+    if (sp.kind === 'multi') {
+      for (let i = 0; i < sp.count; i++) collectTemplates(w, cloneShot(shot), out, budget);
+      return;
+    }
+    if (sp.kind === 'proj') out.push({ sp, shot: cloneShot(shot) });
+  }
+  function spawnFromTemplate(tpl, x, y, dir, extraSpr) {
+    const sp = tpl.sp, shot = tpl.shot;
+    const spr = ((shot.spread || 0) + (sp.spr || 0) + (extraSpr || 0)) * Math.PI / 180;
+    const a = (rng() - 0.5) * 2 * spr;
+    const c = Math.cos(a), q = Math.sin(a);
+    const dx = dir.x * c - dir.y * q, dy = dir.x * q + dir.y * c;
+    const spd = (sp.spd || 3) * (shot.spdMul || 1);
+    const p = {
+      x, y, vx: dx * spd, vy: dy * spd,
+      life: sp.drill ? 18 : 90 + (sp.expl ? 20 : 0),
+      dmg: (sp.dmg || 8) * (shot.dmgMul || 1),
+      col: sp.col, owner: 'player',
+      homing: shot.homing, bounce: shot.bounce || sp.bounce || 0,
+      fire: shot.fire || sp.fire || 0, expl: (shot.expl || 0) + (sp.expl || 0),
+      light: (shot.light || 1) + (sp.light || 0),
+      pierce: sp.pierce || 0, drill: sp.drill || shot.drill || 0,
+      freeze: sp.freeze || 0, acid: sp.acid || 0,
+      trigger: sp.trigger || null, timer: sp.timer || 0,
+      payload: tpl.payload || null, hit: 0
+    };
+    if (player.perk.crit && rng() < 0.25) p.dmg *= 2;
+    projectiles.push(p);
+  }
+  function evalDraw(w, shot, dir, ox, oy) {
+    const sp = drawOne(w);
+    if (!sp) return 0;
+    if (w.mana < (sp.mana || 0)) return 0;
+    w.mana -= sp.mana || 0;
+    shot.delay += sp.delay || 0;
+    shot.rech += sp.rec || 0;
+    if (sp.kind === 'mod') {
+      applyMod(shot, sp);
+      return evalDraw(w, shot, dir, ox, oy);
+    }
+    if (sp.kind === 'multi') {
+      let n = 0;
+      for (let i = 0; i < sp.count; i++) {
+        const ang = (i - (sp.count - 1) / 2) * (sp.sprAdd || 10) * Math.PI / 180;
+        const c = Math.cos(ang), q = Math.sin(ang);
+        const nd = { x: dir.x * c - dir.y * q, y: dir.x * q + dir.y * c };
+        n += evalDraw(w, cloneShot(shot), nd, ox, oy);
+      }
+      return n;
+    }
+    if (sp.kind === 'proj') {
+      let payload = null;
+      if (sp.trigger) {
+        payload = [];
+        const budget = { n: 12 };
+        for (let i = 0; i < (sp.draws || 1); i++) collectTemplates(w, cloneShot(shot), payload, budget);
+      }
+      spawnFromTemplate({ sp, shot: cloneShot(shot), payload }, ox, oy, dir, 0);
+      return 1;
+    }
+    return 0;
+  }
+  function tryCast() {
+    if (gameState !== 'play' || editMode || perkChoices.length || player.dead) return;
+    const w = wands[curWand];
+    if (!w || w.delayT > 0 || w.rechT > 0) return;
+    const dir = aimVec();
+    const shot = baseShot(w);
+    w.wrapped = false;
+    let produced = 0;
+    for (let n = 0; n < (w.spellsPerCast || 1); n++) {
+      produced += evalDraw(w, shot, dir, player.x + dir.x * 8, player.y + dir.y * 6);
+    }
+    if (!produced && w.mana < 3) { toast('魔力不足'); return; }
+    run.casts++;
+    w.delayT = Math.max(2, (w.castDelay + shot.delay) | 0);
+    if (w.wrapped || w.cursor >= w.slots.length) {
+      w.rechT = Math.max(0, (w.recharge + shot.rech) | 0);
+      w.cursor = 0; w.wrapped = false;
+      if (w.shuffle) {
+        const filled = w.slots.filter(Boolean);
+        for (let i = filled.length - 1; i > 0; i--) {
+          const j = rint(0, i); const t = filled[i]; filled[i] = filled[j]; filled[j] = t;
+        }
+        let fi = 0;
+        w.slots = w.slots.map(s => s ? filled[fi++] : null);
+      }
+    }
+    sfx('cast');
+  }
+
+  function impactProj(p, x, y) {
+    if (p.flask) {
+      for (let i = 0; i < 22; i++) {
+        const ax = (x + rint(-4, 4)) | 0, ay = (y + rint(-3, 4)) | 0;
+        const n = g(ax, ay);
+        if (n === AIR || TYPE[n] === T_GAS || TYPE[n] === T_FIRE) s(ax, ay, p.flask);
+      }
+      sfx('kick');
+      return;
+    }
+    if (p.payload && p.payload.length) {
+      const dir = { x: p.vx, y: p.vy };
+      const len = Math.hypot(dir.x, dir.y) || 1;
+      dir.x /= len; dir.y /= len;
+      for (const tpl of p.payload) spawnFromTemplate(tpl, x, y, dir, 6);
+    }
+    if (p.expl) explode(x, y, p.expl, p.dmg, p.expl * 9000);
+    else if (p.drill) {
+      const r = 3;
+      for (let yy = -r; yy <= r; yy++) for (let xx = -r; xx <= r; xx++) {
+        if (xx * xx + yy * yy > r * r) continue;
+        const m = g(x + xx, y + yy);
+        if (m !== BRICK && m !== DENSE && HARD[m] <= 10) s(x + xx, y + yy, AIR);
+      }
+    } else if (p.fire) {
+      s(x, y, FIRE, 24);
+      for (let i = 0; i < 4; i++) {
+        const ax = x + rint(-2, 2), ay = y + rint(-2, 2);
+        if (g(ax, ay) === AIR || FLAM[g(ax, ay)]) s(ax, ay, FIRE, 16);
+      }
+    } else if (p.acid) {
+      for (let i = 0; i < 5; i++) {
+        const ax = x + rint(-2, 2), ay = y + rint(-2, 2);
+        if (g(ax, ay) !== DENSE && g(ax, ay) !== BRICK) s(ax, ay, ACID);
+      }
+    } else if (p.freeze) {
+      const m = g(x, y);
+      if (m === WATER) s(x, y, ICE);
+      else if (g(x, y) === AIR) s(x, y, ICE);
+    } else {
+      const m = g(x, y);
+      if (m !== BRICK && m !== DENSE && HARD[m] <= 8) s(x, y, AIR);
+    }
+    particles.push({ x, y, vx: 0, vy: 0, life: 6, max: 6, kind: 'hit', r: p.col[0], g: p.col[1], b: p.col[2] });
+  }
+
+  function updateProjectiles() {
+    for (let i = projectiles.length - 1; i >= 0; i--) {
+      const p = projectiles[i];
+      if (p.homing) {
+        let best = null, bd = 90;
+        const list = p.owner === 'player' ? enemies : [player];
+        for (const e of list) {
+          if (e.dead) continue;
+          const d = Math.hypot(e.x - p.x, e.y - p.y);
+          if (d < bd) { bd = d; best = e; }
+        }
+        if (best) {
+          const d = Math.hypot(best.x - p.x, best.y - p.y) || 1;
+          p.vx += (best.x - p.x) / d * p.homing * 4;
+          p.vy += (best.y - p.y) / d * p.homing * 4;
+          const n = Math.hypot(p.vx, p.vy) || 1;
+          const spd = Math.min(6.5, n);
+          p.vx = p.vx / n * spd; p.vy = p.vy / n * spd;
+        }
+      }
+      p.x += p.vx; p.y += p.vy;
+      if (!p.drill) p.vy += 0.018;
+      p.life--;
+      if (p.fire && frame % 2 === 0) {
+        const fx = p.x | 0, fy = p.y | 0;
+        if (g(fx, fy) === AIR) s(fx, fy, FIRE, 8);
+      }
+      if (p.trigger === 'timer') {
+        p.timer--;
+        if (p.timer <= 0) {
+          impactProj(p, p.x, p.y);
+          projectiles.splice(i, 1);
+          continue;
+        }
+      }
+      const hitMat = isSolid(g(p.x, p.y));
+      if (hitMat) {
+        if (p.bounce && p.life > 8) {
+          p.vx *= -0.75; p.vy *= -0.75; p.x += p.vx; p.y += p.vy; p.bounce--;
+        } else if (p.drill) {
+          impactProj(p, p.x, p.y);
+          if (p.life <= 0) { projectiles.splice(i, 1); continue; }
+        } else {
+          impactProj(p, p.x, p.y);
+          projectiles.splice(i, 1);
+          continue;
+        }
+      }
+      if (p.owner === 'enemy' && player && !player.dead && Math.hypot(player.x - p.x, player.y - p.y) < 6) {
+        hurt(p.dmg, 'kill', '被击杀 · 敌方弹幕击中要害');
+        impactProj(p, p.x, p.y);
+        projectiles.splice(i, 1);
+        continue;
+      }
+      if (p.owner === 'player') {
+        let killed = false;
+        for (const e of enemies) {
+          if (e.dead) continue;
+          const rad = e.type === 'wellseye' ? 12 : 6;
+          if (Math.hypot(e.x - p.x, e.y - p.y) < rad) {
+            hurtEnemy(e, p.dmg, 'proj');
+            e.flash = 5;
+            if (p.payload) impactProj(p, e.x, e.y);
+            else if (p.expl) impactProj(p, e.x, e.y);
+            else {
+              particles.push({ x: e.x, y: e.y, vx: (rng() - 0.5) * 2, vy: -1, life: 10, max: 10, kind: 'blood', r: 180, g: 30, b: 40 });
+              sfx('hit');
+            }
+            if (p.pierce) { p.pierce--; p.dmg *= 0.85; }
+            else { projectiles.splice(i, 1); killed = true; }
+            break;
+          }
+        }
+        if (killed) continue;
+      }
+      if (p.life <= 0 || p.x < 1 || p.x > W - 2 || p.y < 1 || p.y > H - 2) {
+        if (p.payload) impactProj(p, p.x, p.y);
+        projectiles.splice(i, 1);
+      }
+    }
+  }
+
+  function hurtEnemy(e, d) {
+    if (e.dead) return;
+    e.hp -= d;
+    e.flash = 4;
+    if (e.hp <= 0) killEnemy(e);
+  }
+  function killEnemy(e) {
+    if (e.dead) return;
+    e.dead = true;
+    player.kills++;
+    run.kills++;
+    sfx('kill');
+    const n = e.type === 'wellseye' ? 180 : rint(3, 14) * (player.perk.gold ? 1.5 : 1);
+    pickups.push({ type: 'gold', x: e.x, y: e.y, vx: rng() - 0.5, vy: -1.4, val: n | 0 });
+    for (let i = 0; i < 8; i++) {
+      const bx = e.x + rint(-3, 3), by = e.y + rint(-2, 4);
+      if (g(bx, by) === AIR) s(bx, by, BLOOD);
+      particles.push({ x: bx, y: by, vx: (rng() - 0.5) * 2, vy: -rng() * 2, life: 16, max: 16, kind: 'blood', r: 170, g: 28, b: 40 });
+    }
+    if (player.perk.vamp) player.hp = Math.min(player.maxHp, player.hp + 8);
+    if (e.type === 'burstling') explode(e.x, e.y, 14, 22, 12000);
+    if (e.type === 'wellseye') {
+      gameState = 'win';
+      const el = $('win'); if (el) el.classList.remove('hide');
+      const ws = $('winStats');
+      if (ws) ws.textContent = `深入 ${run.depth | 0}m · 击杀 ${run.kills} · 金币 ${run.gold} · 用时 ${((Date.now() - run.t0) / 1000 | 0)}s`;
+      sfx('win');
+    }
+  }
+
+  function hurt(d, code, msg) {
+    if (!player || player.dead) return;
+    if (player.perk.fireImm && (code === 'burn' || code === 'lava')) return;
+    if (player.perk.toxImm && (code === 'poison' || code === 'toxic' || code === 'acid')) return;
+    if (player.perk.resist) d *= 0.5;
+    const dot = code === 'burn' || code === 'poison' || code === 'toxic' || code === 'drown' || code === 'acid';
+    if (!dot && player.inv > 0) return;
+    player.hp -= d;
+    run.cause = { code, msg };
+    if (!dot) {
+      player.inv = 26;
+      player.flash = 6;
+      flash = 5;
+      shakeMag = Math.max(shakeMag, 3.5);
+      sfx('hurt');
+      for (let i = 0; i < 5; i++) particles.push({
+        x: player.x, y: player.y, vx: (rng() - 0.5) * 2, vy: -rng() * 2,
+        life: 12, max: 12, kind: 'blood', r: 200, g: 40, b: 50
+      });
+    }
+    if (player.hp < 0.05) die(code, msg);
+  }
+  function die(code, msg) {
+    if (player.dead) return;
+    player.dead = true;
+    player.hp = 0;
+    gameState = 'dead';
+    run.cause = { code, msg };
+    const map = {
+      burn: '烧死', drown: '溺死', crush: '压死', poison: '毒死', toxic: '毒死',
+      acid: '溶蚀', lava: '烧死', explode: '炸死', kill: '被击杀'
+    };
+    const title = map[code] || '死亡';
+    const dr = $('deadReason'); if (dr) dr.textContent = title;
+    const cs = $('cause'); if (cs) cs.textContent = msg || title;
+    const rs = $('runStats');
+    if (rs) rs.textContent = `深入 ${run.depth | 0}m · 击杀 ${run.kills} · 金币 ${run.gold} · 种子 ${run.seed >>> 0}`;
+    const dead = $('dead'); if (dead) dead.classList.remove('hide');
+    sfx('dead');
+  }
+
+  function updateEnemies() {
+    for (let i = enemies.length - 1; i >= 0; i--) {
+      const e = enemies[i];
+      if (e.dead) { enemies.splice(i, 1); continue; }
+      if (e.flash) e.flash--;
+      if (Math.abs(e.y - player.y) > VH + 80) continue;
+      e.cool--;
+      const dx = player.x - e.x, dy = player.y - e.y;
+      const dist = Math.hypot(dx, dy) || 1;
+      const kind = e.kind;
+      if (kind === 'melee') {
+        e.vx += Math.sign(dx) * 0.05;
+        e.vx *= 0.86;
+        e.vx = clamp(e.vx, -0.85, 0.85);
+        e.vy += 0.16;
+        const grounded = solidAtRect(e.x, e.y + e.h / 2 + 1, e.w, 2);
+        if (grounded && Math.abs(dx) < 70 && e.cool <= 0 && Math.abs(dy) < 24) { e.vy = -2.2; e.cool = 70; }
+        moveBody(e, e.vx, e.vy, e.w, e.h);
+        if (dist < 9) hurt(e.dmg, 'kill', `被击杀 · ${e.name} 撕咬了你`);
+      } else if (kind === 'ranged') {
+        e.vx += Math.sin(frame * 0.03 + e.phase) * 0.02 + Math.sign(dx) * 0.01;
+        e.vy += 0.12;
+        e.vx *= 0.9;
+        moveBody(e, e.vx, e.vy, e.w, e.h);
+        if (e.cool <= 0 && dist < 160 && dist > 20) {
+          const a = Math.atan2(dy, dx);
+          projectiles.push({
+            x: e.x, y: e.y, vx: Math.cos(a) * 2.1, vy: Math.sin(a) * 2.1,
+            life: 110, dmg: e.dmg, col: [238, 90, 110], owner: 'enemy',
+            homing: 0, bounce: 0, fire: 0, expl: 0, light: 0.6, pierce: 0, drill: 0, payload: null
+          });
+          e.cool = 55 + rint(0, 30);
+        }
+        if (dist < 8) hurt(e.dmg * 0.6, 'kill', `被击杀 · ${e.name} 的近战`);
+      } else if (kind === 'fly') {
+        e.x += Math.sin(frame * 0.07 + e.phase) * 0.55 + Math.sign(dx) * 0.12;
+        e.y += Math.cos(frame * 0.06 + e.phase) * 0.4 + Math.sign(dy) * 0.08;
+        e.x = clamp(e.x, 8, W - 8);
+        if (dist < 8) hurt(e.dmg, 'kill', `被击杀 · ${e.name} 扑击了你`);
+      } else if (kind === 'boom') {
+        e.vx += Math.sign(dx) * 0.07;
+        e.vx *= 0.88;
+        e.vy += 0.14;
+        moveBody(e, e.vx, e.vy, e.w, e.h);
+        if (dist < 28) e.fuse++; else e.fuse = Math.max(0, e.fuse - 1);
+        if (e.fuse > 40 || dist < 10) {
+          explode(e.x, e.y, 16, e.dmg, 15000);
+          e.dead = true;
+        }
+      } else if (kind === 'burrow') {
+        const ang = Math.atan2(dy, dx);
+        e.vx = Math.cos(ang) * 0.55;
+        e.vy = Math.sin(ang) * 0.55;
+        e.x += e.vx; e.y += e.vy;
+        for (let q = -2; q <= 2; q++) for (let k = -2; k <= 2; k++) {
+          const m = g(e.x + q, e.y + k);
+          if (m !== DENSE && m !== BRICK && HARD[m] <= 10) s(e.x + q, e.y + k, AIR);
+        }
+        if (e.segs) {
+          let px = e.x, py = e.y;
+          for (const sg of e.segs) {
+            const ndx = px - sg.x, ndy = py - sg.y, nd = Math.hypot(ndx, ndy) || 1;
+            if (nd > 5) { sg.x += ndx / nd * (nd - 5); sg.y += ndy / nd * (nd - 5); }
+            px = sg.x; py = sg.y;
+          }
+        }
+        if (dist < 10) hurt(e.dmg, 'kill', `被击杀 · ${e.name} 钻穿了你`);
+      } else if (kind === 'boss') {
+        e.vx += Math.sin(frame * 0.02) * 0.02 + Math.sign(dx) * 0.012;
+        e.vy += Math.cos(frame * 0.018) * 0.015 + Math.sign(dy) * 0.01;
+        e.vx = clamp(e.vx, -0.7, 0.7); e.vy = clamp(e.vy, -0.5, 0.5);
+        e.x = clamp(e.x + e.vx, 24, W - 24);
+        e.y = clamp(e.y + e.vy, H - 120, H - 24);
+        if (e.cool <= 0 && dist < 260) {
+          const a = Math.atan2(dy, dx);
+          const n = e.hp < e.max * 0.4 ? 5 : 3;
+          for (let q = -(n - 1) / 2; q <= (n - 1) / 2; q++) {
+            const aa = a + q * 0.18;
+            projectiles.push({
+              x: e.x, y: e.y, vx: Math.cos(aa) * 1.9, vy: Math.sin(aa) * 1.9,
+              life: 160, dmg: e.dmg, col: [210, 80, 230], owner: 'enemy',
+              homing: e.hp < e.max * 0.5 ? 0.04 : 0, bounce: 0, fire: 0, expl: 0, light: 1.1, payload: null
+            });
+          }
+          if (e.hp < e.max * 0.35 && rng() < 0.3) {
+            for (let k = 0; k < 6; k++) s(e.x + rint(-20, 20), e.y + 8, LAVA);
+          }
+          e.cool = 40;
+        }
+        if (dist < 16) hurt(e.dmg, 'kill', '被击杀 · 井瞳的注视灼烧了你');
+      }
+    }
+  }
+
+  function updatePickups() {
+    for (let i = pickups.length - 1; i >= 0; i--) {
+      const p = pickups[i];
+      p.vy += 0.07; p.x += p.vx; p.y += p.vy;
+      if (isSolid(g(p.x, p.y + 3))) { p.vy = 0; p.vx *= 0.6; p.y -= 0.4; }
+      if (Math.hypot(p.x - player.x, p.y - player.y) < 11) {
+        if (p.type === 'gold') {
+          const v = (p.val | 0) * (player.perk.gold ? 1.5 : 1) | 0;
+          run.gold += v; toast(`+${v} 金`); sfx('gold');
+        } else if (p.type === 'heart') {
+          if (p.val) { player.maxHp += 25; player.hp = Math.min(player.maxHp, player.hp + 25); toast('最大生命 +25'); }
+          else { player.hp = player.maxHp; toast('生命已满'); }
+          sfx('perk');
+        } else if (p.type === 'spell') {
+          if (inv.length < 16) inv.push(p.spell);
+          else {
+            const w = wands[curWand];
+            const emp = w.slots.findIndex(s => !s);
+            if (emp >= 0) w.slots[emp] = p.spell;
+            else inv.push(p.spell);
+          }
+          toast('获得法术：' + (SPELLS[p.spell] ? SPELLS[p.spell].name : p.spell));
+          sfx('perk');
+        } else if (p.type === 'flask') {
+          flasks.push({ mat: p.mat, n: 40 });
+          toast('拾取烧瓶：' + MNAME[p.mat]);
+        } else if (p.type === 'chest') {
+          run.gold += p.val | 0;
+          if (rng() < 0.7) pickups.push({ type: 'spell', x: p.x, y: p.y - 6, vx: rng() - 0.5, vy: -1.5, spell: randomSpell(2) });
+          toast('打开宝箱');
+          sfx('gold');
+        } else if (p.type === 'wand') {
+          let slot = wands.findIndex(w => w.slots.every(s => !s));
+          if (slot < 0) slot = 3;
+          wands[slot] = p.wand;
+          toast('获得法杖：' + p.wand.name);
+          sfx('perk');
+        }
+        pickups.splice(i, 1);
+      }
+    }
+  }
+
+  function kick() {
+    if (kickCD > 0 || player.dead) return;
+    kickCD = 18;
+    const a = aimVec();
+    const kx = player.x + a.x * 10, ky = player.y + a.y * 7;
+    sfx('kick');
+    shakeMag = Math.max(shakeMag, 2);
+    for (const e of enemies) {
+      if (e.dead) continue;
+      if (Math.hypot(e.x - kx, e.y - ky) < 13) {
+        e.vx += a.x * 2.6; e.vy += a.y * 1.8 - 1.2;
+        hurtEnemy(e, 5);
+      }
+    }
+    for (let dy = -5; dy <= 5; dy++) for (let dx = -5; dx <= 5; dx++) {
+      const m = g(kx + dx, ky + dy);
+      if (TYPE[m] === T_POWDER || TYPE[m] === T_LIQUID) {
+        const tx = (kx + dx + Math.sign(a.x) * 2) | 0, ty = (ky + dy - 1) | 0;
+        if (g(tx, ty) === AIR) { s(tx, ty, m); s(kx + dx, ky + dy, AIR); }
+      }
+    }
+    particles.push({ x: kx, y: ky, vx: 0, vy: 0, life: 6, max: 6, kind: 'hit', r: 255, g: 255, b: 220 });
+  }
+
+  function throwFlask() {
+    if (!flasks.length) return;
+    const f = flasks.pop();
+    const a = aimVec();
+    projectiles.push({
+      x: player.x + a.x * 8, y: player.y + a.y * 6,
+      vx: a.x * 3.2, vy: a.y * 3.2 - 0.4, life: 80, dmg: 4,
+      col: [CR[f.mat], CG[f.mat], CB[f.mat]], owner: 'player',
+      flask: f.mat, bounce: 1, light: 0.3, payload: null
+    });
+  }
+
+  function updatePlayer() {
+    if (!player || player.dead) return;
+    const left = keys.a || keys.A || keys.ArrowLeft;
+    const right = keys.d || keys.D || keys.ArrowRight;
+    const jump = keys.w || keys.W || keys.ArrowUp || keys[' '] || keys.Space;
+    const accel = (right ? 1 : 0) - (left ? 1 : 0);
+    if (player.oiled) player.vx += accel * 0.08; else player.vx += accel * 0.16;
+    if (accel) player.dir = accel;
+    player.vx *= player.oiled ? 0.92 : 0.8;
+    player.vx = clamp(player.vx, -1.55, 1.55);
+    player.onGround = solidAtRect(player.x, player.y + player.h / 2 + 1, player.w, 2);
+    if (jump && player.onGround) { player.vy = -3.15; player.onGround = false; sfx('jump'); }
+    const hovering = jump && !player.onGround && player.hover > 0;
+    if (hovering) {
+      player.vy = Math.min(player.vy, 0.18);
+      player.hover -= 0.72;
+    } else {
+      player.vy += 0.165;
+      player.hover = Math.min(player.maxHover, player.hover + (player.perk.flight ? 0.5 : 0.24));
+    }
+    player.vy = clamp(player.vy, -4.2, 3.4);
+    const inLiq = isLiq(g(player.x, player.y)) || isLiq(g(player.x, player.y + 3));
+    if (inLiq) { player.vx *= 0.92; player.vy *= 0.9; player.vy -= 0.04; }
+    moveBody(player, player.vx, 0, player.w, player.h);
+    moveBody(player, 0, player.vy, player.w, player.h);
+
+    if (player.inv > 0) player.inv--;
+    if (player.flash) player.flash--;
+    if (kickCD > 0) kickCD--;
+
+    const head = g(player.x, player.y - 5);
+    const body = g(player.x, player.y);
+    const feet = g(player.x, player.y + 4);
+    const around = [head, body, feet, g(player.x - 2, player.y), g(player.x + 2, player.y)];
+
+    let wet = false, oil = false, onFire = false, tox = false, ac = false, lav = false, cr = false;
+    for (const m of around) {
+      if (m === WATER || m === BLOOD || m === SLIME) wet = true;
+      if (m === OIL) oil = true;
+      if (m === FIRE || m === EMBER) onFire = true;
+      if (m === TOXIC || m === PGAS) tox = true;
+      if (m === ACID) ac = true;
+      if (m === LAVA) lav = true;
+      if (TYPE[m] === T_STATIC && HARD[m] >= 10) cr = true;
+    }
+    if (wet) { player.wet = 50; player.burning = 0; player.oiled = Math.max(0, player.oiled - 3); }
+    else if (player.wet > 0) player.wet--;
+    if (oil) player.oiled = 90;
+    else if (player.oiled > 0) player.oiled--;
+    if (onFire || lav) {
+      if (player.wet <= 0) player.burning = Math.max(player.burning, lav ? 90 : 50);
+    }
+    if (player.burning > 0) {
+      player.burning--;
+      hurt(player.maxHp * 0.02 / 60, lav ? 'lava' : 'burn', lav ? '烧死 · 熔岩将你化为灰烬' : '烧死 · 火焰吞噬了你的血肉');
+    }
+    if (tox) {
+      player.toxic = 80;
+      hurt(player.maxHp * 0.015 / 60, 'toxic', '毒死 · 毒泥侵蚀了脏器');
+    } else if (player.toxic > 0) player.toxic--;
+    if (ac) hurt(0.35, 'acid', '溶蚀 · 强酸溶解了身体');
+    if (TYPE[head] === T_STATIC && HARD[head] >= 8) hurt(8, 'crush', '压死 · 沉重的固体将你碾碎');
+
+    if (TYPE[head] === T_LIQUID || TYPE[head] === T_STATIC) {
+      player.air--;
+      if (player.air <= 0) hurt(1.2, 'drown', '溺死 · 肺叶灌满了液体');
+    } else player.air = Math.min(90, player.air + 3);
+
+    if (g(player.x, player.y) === GOLD || g(player.x, player.y + 3) === GOLD) {
+      for (let dy = -4; dy <= 5; dy++) for (let dx = -3; dx <= 3; dx++) {
+        if (g(player.x + dx, player.y + dy) === GOLD) {
+          s(player.x + dx, player.y + dy, AIR);
+          run.gold += player.perk.gold ? 2 : 1;
+        }
+      }
+    }
+
+    for (const w of wands) {
+      w.mana = Math.min(w.manaMax, w.mana + w.regen / 60);
+      if (w.delayT > 0) w.delayT--;
+      if (w.rechT > 0) w.rechT--;
+    }
+    if (pointer.down) tryCast();
+
+    const hidx = holy.findIndex(h => player.y >= h.y0 && player.y < h.y1);
+    if (hidx >= 0 && !holySeen.has(hidx)) {
+      holySeen.add(hidx);
+      player.hp = player.maxHp;
+      offerPerks();
+    }
+  }
+
+  function updateParticles() {
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.life--;
+      p.x += p.vx || 0; p.y += p.vy || 0;
+      if (p.kind !== 'boom' && p.kind !== 'hit') p.vy += 0.08;
+      if (p.life <= 0) particles.splice(i, 1);
+    }
+  }
+
+  function offerPerks() {
+    const pool = PERKS.slice();
+    perkChoices = [];
+    for (let i = 0; i < 3; i++) {
+      const j = rint(0, pool.length - 1);
+      perkChoices.push(pool.splice(j, 1)[0]);
+    }
+    renderPerks();
+  }
+  function renderPerks() {
+    const el = $('perkPanel');
+    if (!el) return;
+    el.innerHTML = `<div class="panel-title"><b>圣所 · 选择一项永久祝福</b><span>点击卡片或按 1 / 2 / 3</span></div>
+      <div class="perk-grid">${perkChoices.map((p, i) => `<button class="perk" data-perk="${i}"><b>${i + 1}. ${p.name}</b><small>${p.desc}</small></button>`).join('')}</div>`;
+    el.classList.remove('hide');
+  }
+  function choosePerk(i) {
+    const p = perkChoices[i];
+    if (!p) return;
+    p.apply(player);
+    toast('获得祝福：' + p.name);
+    perkChoices = [];
+    const el = $('perkPanel'); if (el) el.classList.add('hide');
+    sfx('perk');
+  }
+
+  function spellName(id) { return SPELLS[id] ? SPELLS[id].name : (id || '空'); }
+  function spellKindClass(id) {
+    const s = SPELLS[id];
+    if (!s) return '';
+    if (s.kind === 'mod') return 'mod';
+    if (s.trigger) return 'trig';
+    if (s.kind === 'multi') return 'multi';
+    return 'on';
+  }
+  function renderWands() {
+    const el = $('wandPanel');
+    if (!el) return;
+    const can = player.perk.tinker || inHoly(player.y);
+    el.innerHTML = `<div class="panel-title"><b>法杖编辑台</b><span>${can ? '点击法术拾取/放入槽位 · E 关闭' : '只能在圣所改杖'}</span></div>
+      <div class="wand-grid">${wands.map((w, wi) => `<div class="wand-card ${wi === curWand ? 'active' : ''}">
+        <h3>${wi + 1}. ${w.name}${w.shuffle ? ' · 乱序' : ''}</h3>
+        <div class="stats"><span>延迟 ${w.castDelay}</span><span>充能 ${w.recharge}</span>
+        <span>魔力 ${w.manaMax}</span><span>回复 ${w.regen}/s</span></div>
+        <div class="spell-row">${w.slots.map((s, si) => `<button class="spell-btn ${s ? '' : 'empty'}" data-w="${wi}" data-s="${si}">${s ? spellName(s) : '·'}</button>`).join('')}</div>
+      </div>`).join('')}</div>
+      <div class="inv-title">法术袋</div>
+      <div class="spell-row" id="invRow">${inv.map((s, i) => `<button class="spell-btn" data-inv="${i}">${spellName(s)}</button>`).join('')}
+        <button class="spell-btn empty" data-inv="-1">放下</button></div>`;
+    el.classList.remove('hide');
+  }
+  function handleWandClick(e) {
+    if (!(player.perk.tinker || inHoly(player.y))) { toast('只能在圣所改杖'); return; }
+    const b = e.target.closest('.spell-btn');
+    if (!b) return;
+    if (b.dataset.inv !== undefined) {
+      const ii = +b.dataset.inv;
+      if (heldSpell) {
+        if (ii === -1) { inv.push(heldSpell.id); heldSpell = null; }
+        else {
+          const tmp = inv[ii];
+          if (tmp) { inv[ii] = heldSpell.id; heldSpell = { id: tmp }; }
+          else { inv[ii] = heldSpell.id; heldSpell = null; }
+        }
+      } else if (ii >= 0 && inv[ii]) {
+        heldSpell = { id: inv[ii] };
+        inv.splice(ii, 1);
+      }
+      renderWands();
+      return;
+    }
+    const wi = +b.dataset.w, si = +b.dataset.s;
+    const slot = wands[wi].slots;
+    if (heldSpell) {
+      const tmp = slot[si];
+      slot[si] = heldSpell.id;
+      heldSpell = tmp ? { id: tmp } : null;
+    } else if (slot[si]) {
+      heldSpell = { id: slot[si] };
+      slot[si] = null;
+    }
+    renderWands();
+  }
+
+  function updateHud() {
+    if (!player) return;
+    const w = wands[curWand];
+    const hp = clamp(player.hp / player.maxHp, 0, 1);
+    const ma = w ? clamp(w.mana / w.manaMax, 0, 1) : 0;
+    const ho = clamp(player.hover / player.maxHover, 0, 1);
+    const a = $('hpFill'); if (a) a.style.width = (hp * 100) + '%';
+    const b = $('manaFill'); if (b) b.style.width = (ma * 100) + '%';
+    const c = $('hoverFill'); if (c) c.style.width = (ho * 100) + '%';
+    const ht = $('hpText'); if (ht) ht.textContent = `${Math.ceil(Math.max(0, player.hp))}/${player.maxHp}`;
+    const mt = $('manaText'); if (mt) mt.textContent = w ? Math.floor(w.mana) : 0;
+    const dp = $('depth'); if (dp) dp.textContent = `${run.depth | 0}m`;
+    const gd = $('gold'); if (gd) gd.textContent = `${run.gold} ✦`;
+    const bm = $('biome'); if (bm) bm.textContent = biomeObj(player.y).en;
+    const st = $('statuses');
+    if (st) {
+      let h = '';
+      if (player.burning > 0) h += '<span class="status">燃烧</span>';
+      if (player.wet > 0) h += '<span class="status">潮湿</span>';
+      if (player.oiled > 0) h += '<span class="status">油污</span>';
+      if (player.toxic > 0) h += '<span class="status">毒污</span>';
+      if (player.air < 40) h += '<span class="status">窒息</span>';
+      st.innerHTML = h;
+    }
+    let html = '';
+    wands.forEach((ww, i) => {
+      html += `<div class="wand-chip ${i === curWand ? 'active' : ''}"><b>${i + 1} · ${ww.name}</b>
+        <span>${ww.rechT > 0 ? '充能' : ww.delayT > 0 ? '延迟' : '就绪'} · ${Math.floor(ww.mana)}/${ww.manaMax}</span>
+        <div class="slotdots">${ww.slots.map(s => `<s class="${s ? spellKindClass(s) : ''}"></s>`).join('')}</div></div>`;
+    });
+    const wh = $('wandHud'); if (wh) wh.innerHTML = html;
+    const sr = $('spellRow');
+    if (sr && w) {
+      sr.innerHTML = w.slots.map((s, i) => `<div class="sp ${i === w.cursor - 1 ? 'cur' : ''}">${s && SPELLS[s] ? SPELLS[s].glyph : ''}</div>`).join('');
+    }
+  }
+  function toast(text) {
+    const el = $('toast');
+    if (!el) return;
+    el.textContent = text;
+    el.style.opacity = 1;
+    toastT = 90;
+  }
+
+  function stampLight(sx, sy, rad, intens, cr, cg, cb) {
+    const r = rad | 0;
+    const x0 = clamp((sx - r) | 0, 0, VW - 1), x1 = clamp((sx + r) | 0, 0, VW - 1);
+    const y0 = clamp((sy - r) | 0, 0, VH - 1), y1 = clamp((sy + r) | 0, 0, VH - 1);
+    const r2 = r * r;
+    for (let y = y0; y <= y1; y++) {
+      const dy = y - sy, dy2 = dy * dy;
+      for (let x = x0; x <= x1; x++) {
+        const dx = x - sx, d2 = dx * dx + dy2;
+        if (d2 > r2) continue;
+        const fall = 1 - d2 / r2;
+        const v = intens * fall * fall;
+        const i = y * VW + x;
+        if (v > light[i]) {
+          light[i] = v > 255 ? 255 : v;
+          lR[i] = cr; lG[i] = cg; lB[i] = cb;
+        }
+      }
+    }
+  }
+  function stampPlayerLight() {
+    const px = player.x, py = player.y - camY;
+    const R = player.perk.lamp ? 96 : 72;
+    const rays = 28;
+    for (let a = 0; a < rays; a++) {
+      const ang = a * Math.PI * 2 / rays;
+      const dx = Math.cos(ang), dy = Math.sin(ang);
+      let atten = 1;
+      for (let t = 0; t < R; t += 2) {
+        const x = px + dx * t, y = player.y + dy * t;
+        const sx = x, sy = y - camY;
+        if (sx < -2 || sy < -2 || sx >= VW + 2 || sy >= VH + 2) break;
+        const fall = 1 - t / R;
+        const v = 230 * fall * fall * atten;
+        const ix0 = sx | 0, iy0 = sy | 0;
+        for (let oy = 0; oy <= 1; oy++) for (let ox = 0; ox <= 1; ox++) {
+          const xx = ix0 + ox, yy = iy0 + oy;
+          if (xx < 0 || yy < 0 || xx >= VW || yy >= VH) continue;
+          const i = yy * VW + xx;
+          if (v > light[i]) { light[i] = v > 255 ? 255 : v; lR[i] = 255; lG[i] = 214; lB[i] = 150; }
+        }
+        const m = g(x, y);
+        if (TYPE[m] === T_STATIC && m !== GLASS && m !== ICE && m !== CRYSTAL) {
+          atten *= 0.55;
+          if (atten < 0.05) break;
+        }
+      }
+    }
+  }
+
+  function drawSprite(px, py, rows, pal, flip) {
+    const ox = (px | 0), oy = (py | 0);
+    for (let y = 0; y < rows.length; y++) {
+      const row = rows[y];
+      for (let x = 0; x < row.length; x++) {
+        const ch = row.charCodeAt(flip ? row.length - 1 - x : x);
+        if (ch === 46) continue;
+        const ci = ch - 48;
+        const c = pal[ci];
+        if (!c) continue;
+        const sx = ox + x - (row.length >> 1);
+        const sy = oy + y - (rows.length >> 1);
+        if (sx < 0 || sy < 0 || sx >= VW || sy >= VH) continue;
+        const i = (sy * VW + sx) * 4;
+        pix[i] = c[0]; pix[i + 1] = c[1]; pix[i + 2] = c[2]; pix[i + 3] = 255;
+      }
+    }
+  }
+
+  const SPR_PL = ['..111..', '.11111.', '.11111.', '..111..', '.23332.', '2333332', '.33333.', '.3...3.', '.3...3.', '.4...4.'];
+  const PAL_PL = { 1: [232, 186, 168], 2: [90, 70, 140], 3: [120, 96, 176], 4: [40, 36, 52] };
+  const SPR_TUSK = ['..11..', '.1111.', '211112', '.1111.', '.2..2.'];
+  const PAL_TUSK = { 1: [186, 196, 176], 2: [40, 42, 48] };
+  const SPR_GUN = ['..11..', '.1111.', '111113', '.1111.', '.2..2.'];
+  const PAL_GUN = { 1: [196, 72, 78], 2: [40, 30, 32], 3: [240, 200, 90] };
+  const SPR_FLY = ['.1...1.', '11.1.11', '.11111.', '..111..'];
+  const PAL_FLY = { 1: [200, 96, 140] };
+  const SPR_BOOM = ['.111.', '12221', '12221', '.111.'];
+  const PAL_BOOM = { 1: [80, 160, 70], 2: [220, 80, 60] };
+  const SPR_BOSS = ['...111...', '.1133311.', '133141331', '.1133311.', '...111...'];
+  const PAL_BOSS = { 1: [160, 48, 170], 2: [40, 16, 48], 3: [220, 90, 230], 4: [255, 240, 140] };
+
+  function draw() {
+    if (!ctx || !pix) return;
+    if (!cells) {
+      pix.fill(0);
+      for (let i = 3; i < pix.length; i += 4) pix[i] = 255;
+      if (ctx.putImageData) ctx.putImageData(img, 0, 0);
+      return;
+    }
+    const cam = camY + ((rng() - 0.5) * shakeMag);
+    const y0 = cam | 0;
+    const bmid = biomeObj(y0 + VH * 0.5);
+    const amb = bmid.amb;
+    light.fill(amb);
+    lR.fill(40); lG.fill(50); lB.fill(70);
+
+    if (player && !player.dead) stampPlayerLight();
+    for (const L of worldLights) {
+      const sy = L.y - cam;
+      if (sy < -L.r || sy > VH + L.r) continue;
+      stampLight(L.x, sy, L.r, L.i, L.cr, L.cg, L.cb);
+    }
+    const scanY0 = 0, scanY1 = VH;
+    for (let sy = scanY0; sy < scanY1; sy += 3) {
+      const wy = y0 + sy;
+      if (wy < 0 || wy >= H) continue;
+      const row = wy * W;
+      for (let sx = 0; sx < VW; sx += 3) {
+        const m = cells[row + sx];
+        if (!EMIT[m]) continue;
+        stampLight(sx, sy, m === LAVA ? 22 : m === FIRE ? 16 : m === FUNGUS || m === CRYSTAL ? 14 : 10,
+          EMIT[m], ER[m], EG[m], EB[m]);
+      }
+    }
+    for (const p of projectiles) {
+      const sy = p.y - cam;
+      if (p.light) stampLight(p.x, sy, 12 + p.light * 8, 160 * (p.light || 1), p.col[0], p.col[1], p.col[2]);
+    }
+
+    const bg = bmid.bg;
+    for (let sy = 0; sy < VH; sy++) {
+      const wy = y0 + sy;
+      const row = wy * W;
+      let di = sy * VW * 4;
+      const li0 = sy * VW;
+      const sky = wy < SURF - 4;
+      for (let sx = 0; sx < VW; sx++) {
+        let r, gch, b;
+        if (wy < 0 || wy >= H) { r = 4; gch = 5; b = 8; }
+        else {
+          const m = cells[row + sx];
+          if (m === AIR) {
+            if (sky) {
+              const k = clamp(1 - wy / SURF, 0, 1);
+              r = 12 + k * 40; gch = 10 + k * 18; b = 28 + k * 50;
+              if (((phash(sx, wy) & 255) > 252)) { r = 220; gch = 220; b = 200; }
+            } else { r = bg[0]; gch = bg[1]; b = bg[2]; }
+          } else {
+            const h = (phash(sx, wy + ((TYPE[m] === T_LIQUID || m === FIRE) ? (frame >> 2) : 0)) & 7) - 3;
+            r = CR[m] + h * (CV[m] >> 1);
+            gch = CG[m] + h * (CV[m] >> 1);
+            b = CB[m] + ((h * CV[m]) >> 2);
+            if (m === ROCK || m === DIRT) {
+              const t = bmid.tint;
+              r *= t[0]; gch *= t[1]; b *= t[2];
+            }
+            if (m === LAVA) {
+              const hot = cells[row - W + sx] === AIR ? 40 : 0;
+              r = 255; gch = 80 + hot + (h * 6); b = 20;
+            }
+            if (m === FIRE) { r = 255; gch = 120 + (h + 3) * 12; b = 30; }
+            if (m === BRICK && ((sx + wy) & 7) === 0) { r += 18; gch += 12; }
+          }
+        }
+        const li = li0 + sx;
+        const L = light[li];
+        const lr = lR[li], lg = lG[li], lb = lB[li];
+        const f = L / 255;
+        const warm = 0.04 + f;
+        r = r * warm * (0.55 + lr / 420);
+        gch = gch * warm * (0.5 + lg / 460);
+        b = b * warm * (0.62 + lb / 520);
+        if (L < 18 && !sky) { r *= 0.45; gch *= 0.5; b = Math.max(b * 0.7, 6); }
+        const vx = sx / VW - 0.5, vy = sy / VH - 0.5;
+        const vig = 1 - (vx * vx + vy * vy) * 0.7;
+        r *= vig; gch *= vig; b *= vig;
+        pix[di] = r < 0 ? 0 : r > 255 ? 255 : r;
+        pix[di + 1] = gch < 0 ? 0 : gch > 255 ? 255 : gch;
+        pix[di + 2] = b < 0 ? 0 : b > 255 ? 255 : b;
+        pix[di + 3] = 255;
+        di += 4;
+      }
+    }
+
+    function pset(x, y, r, gch, b, a) {
+      x = x | 0; y = y | 0;
+      if (x < 0 || y < 0 || x >= VW || y >= VH) return;
+      const i = (y * VW + x) * 4;
+      const ia = (a == null ? 1 : a);
+      pix[i] = pix[i] * (1 - ia) + r * ia;
+      pix[i + 1] = pix[i + 1] * (1 - ia) + gch * ia;
+      pix[i + 2] = pix[i + 2] * (1 - ia) + b * ia;
+    }
+
+    for (const p of pickups) {
+      const sy = p.y - cam;
+      const col = p.type === 'gold' ? [244, 202, 83] : p.type === 'heart' ? [255, 90, 110] : p.type === 'wand' ? [180, 220, 255] : p.type === 'flask' ? [140, 200, 255] : p.type === 'chest' ? [196, 140, 60] : [180, 140, 255];
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++)
+        if (Math.abs(dx) + Math.abs(dy) < 4) pset(p.x + dx, sy + dy, col[0], col[1], col[2], 0.9);
+    }
+    for (const p of projectiles) {
+      const sy = p.y - cam;
+      const c = p.col || [255, 255, 200];
+      pset(p.x, sy, c[0], c[1], c[2], 1);
+      pset(p.x + 1, sy, c[0], c[1], c[2], 0.8);
+      pset(p.x, sy + 1, c[0], c[1], c[2], 0.7);
+      pset(p.x - 1, sy, c[0], c[1], c[2], 0.5);
+    }
+    for (const p of particles) {
+      const sy = p.y - cam;
+      const a = p.life / (p.max || 10);
+      if (p.kind === 'boom') {
+        const rad = (p.rad || 8) * (1 - a);
+        for (let t = 0; t < 12; t++) {
+          const ang = t * Math.PI / 6;
+          pset(p.x + Math.cos(ang) * rad, sy + Math.sin(ang) * rad, p.r, p.g, p.b, a);
+        }
+      } else pset(p.x, sy, p.r, p.g, p.b, a);
+    }
+    for (const e of enemies) {
+      const sy = e.y - cam;
+      if (sy < -16 || sy > VH + 16) continue;
+      const flashE = e.flash > 0;
+      if (e.kind === 'boss') drawSprite(e.x, sy, SPR_BOSS, flashE ? { 1: [255, 255, 255], 3: [255, 255, 255], 4: [255, 255, 200] } : PAL_BOSS, false);
+      else if (e.kind === 'ranged') drawSprite(e.x, sy, SPR_GUN, flashE ? { 1: [255, 255, 255], 3: [255, 255, 200] } : PAL_GUN, e.x < player.x);
+      else if (e.kind === 'fly') drawSprite(e.x, sy, SPR_FLY, flashE ? { 1: [255, 255, 255] } : PAL_FLY, false);
+      else if (e.kind === 'boom') drawSprite(e.x, sy, SPR_BOOM, e.fuse > 20 ? { 1: [255, 80, 40], 2: [255, 220, 80] } : PAL_BOOM, false);
+      else if (e.kind === 'burrow') {
+        pset(e.x, sy, 160, 120, 80, 1);
+        if (e.segs) for (const sg of e.segs) pset(sg.x, sg.y - cam, 130, 100, 70, 1);
+      } else drawSprite(e.x, sy, SPR_TUSK, flashE ? { 1: [255, 255, 255] } : PAL_TUSK, e.vx > 0);
+      if (e.hp < e.max) {
+        const bw = e.kind === 'boss' ? 20 : 10;
+        for (let k = 0; k < bw; k++) pset(e.x - bw / 2 + k, sy - e.h / 2 - 4, 20, 20, 24, 1);
+        const hw = bw * clamp(e.hp / e.max, 0, 1);
+        for (let k = 0; k < hw; k++) pset(e.x - bw / 2 + k, sy - e.h / 2 - 4, 220, 70, 80, 1);
+      }
+    }
+    if (player && !player.dead) {
+      const sy = player.y - cam;
+      const pal = player.flash || player.inv % 4 < 2 && player.inv > 0
+        ? { 1: [255, 255, 255], 2: [255, 255, 255], 3: [255, 255, 255], 4: [255, 255, 255] }
+        : PAL_PL;
+      if (!(player.inv > 0 && frame % 4 < 2)) drawSprite(player.x, sy, SPR_PL, pal, player.dir < 0);
+      const a = aimVec();
+      for (let t = 3; t < 9; t++) pset(player.x + a.x * t + player.dir * 2, sy + a.y * t, 200, 180, 90, 0.7);
+      if (player.burning > 0) {
+        pset(player.x, sy - 6, 255, 160, 40, 0.8);
+        pset(player.x + 1, sy - 7, 255, 200, 60, 0.6);
+      }
+    }
+    if (flash > 0) {
+      const a = flash / 8;
+      for (let i = 0; i < pix.length; i += 4) {
+        pix[i] = pix[i] + (255 - pix[i]) * a;
+        pix[i + 1] = pix[i + 1] + (255 - pix[i + 1]) * a * 0.8;
+        pix[i + 2] = pix[i + 2] + (220 - pix[i + 2]) * a * 0.5;
+      }
+    }
+    if (ctx.putImageData) ctx.putImageData(img, 0, 0);
+
+    const mx = pointer.x | 0, my = pointer.y | 0;
+    const mat = g(mx, (my + cam) | 0);
+    const tag = $('matTag');
+    if (tag) tag.textContent = gameState === 'play' ? MNAME[mat] || '' : '';
+  }
+
+  function update() {
+    if (gameState !== 'play') return;
+    if (perkChoices.length) return;
+    frame++;
+    run.frames++;
+    if (keys['1']) { curWand = 0; keys['1'] = false; }
+    if (keys['2']) { curWand = 1; keys['2'] = false; }
+    if (keys['3']) { curWand = 2; keys['3'] = false; }
+    if (keys['4']) { curWand = 3; keys['4'] = false; }
+    updatePlayer();
+    updateMaterials();
+    updateProjectiles();
+    updateEnemies();
+    updatePickups();
+    updateParticles();
+    camY += (player.y - VH * 0.55 - camY) * 0.14;
+    camY = clamp(camY, 0, H - VH);
+    run.depth = Math.max(run.depth, player.y | 0);
+    shakeMag *= 0.84;
+    if (flash > 0) flash--;
+    if (toastT > 0) { toastT--; if (!toastT) { const t = $('toast'); if (t) t.style.opacity = 0; } }
+    if (frame % 8 === 0) updateHud();
+  }
+
+  let ac = null;
+  function ensureAC() {
+    if (ac) return ac;
+    const AC = global.AudioContext || global.webkitAudioContext;
+    if (!AC) return null;
+    try { ac = new AC(); } catch (e) { ac = null; }
+    return ac;
+  }
+  function sfx(kind) {
+    try {
+      const a = ensureAC(); if (!a) return;
+      if (a.state === 'suspended') a.resume();
+      const t = a.currentTime;
+      if (kind === 'boom') {
+        const n = a.sampleRate * 0.22 | 0;
+        const buf = a.createBuffer(1, n, a.sampleRate);
+        const d = buf.getChannelData(0);
+        for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 1.4);
+        const src = a.createBufferSource(); src.buffer = buf;
+        const f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 420;
+        const g = a.createGain(); g.gain.value = 0.18;
+        src.connect(f); f.connect(g); g.connect(a.destination); src.start();
+        return;
+      }
+      const o = a.createOscillator(), g = a.createGain();
+      const map = { cast: [620, 0.05, 'square'], hit: [180, 0.04, 'sawtooth'], hurt: [120, 0.08, 'sawtooth'],
+        gold: [880, 0.06, 'square'], perk: [520, 0.1, 'triangle'], jump: [300, 0.04, 'sine'],
+        kick: [90, 0.06, 'square'], dead: [70, 0.4, 'sine'], win: [660, 0.3, 'triangle'], kill: [240, 0.07, 'square'] };
+      const m = map[kind] || [400, 0.05, 'square'];
+      o.type = m[2]; o.frequency.value = m[0];
+      if (kind === 'cast') o.frequency.exponentialRampToValueAtTime(180, t + 0.07);
+      if (kind === 'gold') o.frequency.exponentialRampToValueAtTime(1400, t + 0.05);
+      g.gain.value = 0.04; g.gain.exponentialRampToValueAtTime(0.001, t + m[1] + 0.02);
+      o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + m[1] + 0.03);
+    } catch (err) { /* ignore */ }
+  }
+
+  function startGame(sd) {
+    seed = (sd == null ? (Date.now() ^ (Math.random() * 1e9 | 0)) : sd) >>> 0;
+    setupWands();
+    generateWorld(seed);
+    gameState = 'play';
+    editMode = false;
+    perkChoices = [];
+    pointer.down = false;
+    pointer.active = true;
+    pointer.x = VW * 0.7;
+    pointer.y = VH * 0.45;
+    const ids = ['title', 'dead', 'win', 'pause', 'wandPanel', 'perkPanel'];
+    for (const id of ids) { const el = $(id); if (el) el.classList.add('hide'); }
+    const hud = $('hud'); if (hud) hud.classList.remove('hide');
+    updateHud();
+    toast('种子 ' + (seed >>> 0));
+    sfx('perk');
+  }
+  function toggleEdit() {
+    if (gameState !== 'play' || perkChoices.length) return;
+    if (!(player.perk.tinker || inHoly(player.y))) { toast('在圣所按 E 改杖'); return; }
+    editMode = !editMode;
+    if (editMode) renderWands();
+    else { const el = $('wandPanel'); if (el) el.classList.add('hide'); heldSpell = null; }
+  }
+
+  function loop(now) {
+    if (!lastT) lastT = now;
+    let dt = now - lastT; lastT = now;
+    if (dt > 50) dt = 50;
+    acc += dt;
+    fpsC++; fpsT += dt;
+    if (fpsT >= 500) { fps = fpsC * 1000 / fpsT; fpsC = 0; fpsT = 0; const el = $('fps'); if (el) el.textContent = fps.toFixed(0) + ' fps'; }
+    while (acc >= 16.666) { update(); acc -= 16.666; }
+    draw();
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(loop);
+  }
+
+  function bind() {
+    const c = $('game');
+    if (!c) return;
+    canvas = c;
+    ctx = canvas.getContext('2d', { alpha: false });
+    if (ctx) {
+      ctx.imageSmoothingEnabled = false;
+      img = ctx.createImageData(VW, VH);
+      pix = img.data;
+    } else {
+      img = { width: VW, height: VH, data: new Uint8ClampedArray(VW * VH * 4) };
+      pix = img.data;
+      ctx = { putImageData() {}, createImageData(w, h) { return { width: w, height: h, data: new Uint8ClampedArray(w * h * 4) }; } };
+    }
+    light = new Uint8Array(VW * VH);
+    lR = new Uint8Array(VW * VH);
+    lG = new Uint8Array(VW * VH);
+    lB = new Uint8Array(VW * VH);
+
+    if (typeof window === 'undefined') return;
+    window.addEventListener('keydown', e => {
+      keys[e.key] = true;
+      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '].includes(e.key)) e.preventDefault();
+      if (e.key === 'e' || e.key === 'E') toggleEdit();
+      if (e.key === 'f' || e.key === 'F') kick();
+      if (e.key === 'g' || e.key === 'G') throwFlask();
+      if (e.key === 'Escape') {
+        if (editMode) { editMode = false; const el = $('wandPanel'); if (el) el.classList.add('hide'); return; }
+        if (gameState === 'play' && !perkChoices.length) {
+          paused = !paused;
+          if (paused) { gameState = 'pause'; const p = $('pause'); if (p) p.classList.remove('hide'); }
+        } else if (gameState === 'pause') {
+          paused = false; gameState = 'play'; const p = $('pause'); if (p) p.classList.add('hide');
+        }
+      }
+      if (perkChoices.length && ['1', '2', '3'].includes(e.key)) choosePerk(+e.key - 1);
+    });
+    window.addEventListener('keyup', e => { keys[e.key] = false; });
+    const mapPtr = e => {
+      const r = canvas.getBoundingClientRect();
+      pointer.x = clamp((e.clientX - r.left) / r.width * VW, 0, VW - 1);
+      pointer.y = clamp((e.clientY - r.top) / r.height * VH, 0, VH - 1);
+      pointer.active = true;
+    };
+    canvas.addEventListener('pointermove', mapPtr);
+    canvas.addEventListener('pointerdown', e => {
+      mapPtr(e);
+      if (e.button === 2) { kick(); return; }
+      if (gameState === 'play') pointer.down = true;
+      ensureAC();
+    });
+    canvas.addEventListener('pointerup', () => { pointer.down = false; });
+    canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+    const holdKey = (btn, key) => {
+      if (!btn) return;
+      btn.addEventListener('pointerdown', e => { e.preventDefault(); keys[key] = true; });
+      btn.addEventListener('pointerup', e => { e.preventDefault(); keys[key] = false; });
+      btn.addEventListener('pointerleave', () => { keys[key] = false; });
+    };
+    holdKey($('jumpBtn'), 'w');
+    const fb = $('fireBtn');
+    if (fb) {
+      fb.addEventListener('pointerdown', e => { e.preventDefault(); pointer.down = true; });
+      fb.addEventListener('pointerup', () => { pointer.down = false; });
+    }
+    const wb = $('wandBtn'); if (wb) wb.addEventListener('click', () => { curWand = (curWand + 1) % wands.length; updateHud(); });
+    const kb = $('kickBtn'); if (kb) kb.addEventListener('pointerdown', e => { e.preventDefault(); kick(); });
+    const eb = $('editBtn'); if (eb) eb.addEventListener('click', toggleEdit);
+
+    const stick = $('stick'), knob = $('knob');
+    if (stick) {
+      const setStick = (cx, cy) => {
+        const r = stick.getBoundingClientRect();
+        const dx = cx - (r.left + r.width / 2), dy = cy - (r.top + r.height / 2);
+        const len = Math.hypot(dx, dy) || 1;
+        const m = Math.min(1, len / (r.width * 0.4));
+        const nx = dx / len * m, ny = dy / len * m;
+        if (knob) { knob.style.left = (33 + nx * 28) + 'px'; knob.style.top = (33 + ny * 28) + 'px'; }
+        keys.a = nx < -0.3; keys.d = nx > 0.3;
+        if (ny < -0.45) keys.w = true;
+      };
+      const endStick = () => {
+        keys.a = keys.d = false;
+        if (knob) { knob.style.left = '33px'; knob.style.top = '33px'; }
+      };
+      stick.addEventListener('pointerdown', e => { e.preventDefault(); stick.setPointerCapture(e.pointerId); setStick(e.clientX, e.clientY); });
+      stick.addEventListener('pointermove', e => { if (e.buttons) setStick(e.clientX, e.clientY); });
+      stick.addEventListener('pointerup', endStick);
+      stick.addEventListener('pointercancel', endStick);
+    }
+
+    const sb = $('startBtn'); if (sb) sb.addEventListener('click', () => startGame());
+    const rb = $('restartBtn'); if (rb) rb.addEventListener('click', () => startGame());
+    const winb = $('winBtn'); if (winb) winb.addEventListener('click', () => startGame());
+    const res = $('resumeBtn'); if (res) res.addEventListener('click', () => { paused = false; gameState = 'play'; const p = $('pause'); if (p) p.classList.add('hide'); });
+    const gu = $('giveUpBtn'); if (gu) gu.addEventListener('click', () => { const p = $('pause'); if (p) p.classList.add('hide'); die('kill', '放弃 · 你放下了法杖'); });
+    const pp = $('perkPanel'); if (pp) pp.addEventListener('click', e => { const b = e.target.closest('[data-perk]'); if (b) choosePerk(+b.dataset.perk); });
+    const wp = $('wandPanel'); if (wp) wp.addEventListener('click', handleWandClick);
+  }
+
+  const API = {
+    VW, VH, W, H,
+    MAT: { AIR, ROCK, DIRT, SAND, WATER, OIL, LAVA, WOOD, ICE, MOSS, BLOOD, STEAM, FIRE, SMOKE, GOLD, SNOW, TOXIC, STONE, METAL, BRICK, ACID, COAL, FUNGUS, GUNP, PGAS, SLIME, ASH, EMBER, SANDST, SNOWROCK, VINE, GLASS, FGAS, RUST, CRYSTAL, MUD, WOODP, DENSE, GRASS, BONE },
+    TYPE, DEN, HARD, MNAME, SPELLS, ENEMY_DEF,
+    start: startGame,
+    tick: function (n) { n = n || 1; for (let i = 0; i < n; i++) update(); },
+    draw,
+    getState() {
+      return {
+        gameState, frame,
+        player: player ? { x: player.x, y: player.y, hp: player.hp, maxHp: player.maxHp, dead: player.dead, vx: player.vx, vy: player.vy, onGround: player.onGround, hover: player.hover } : null,
+        run: run ? { gold: run.gold, depth: run.depth, kills: run.kills, frames: run.frames, casts: run.casts, seed: run.seed, cause: run.cause } : null,
+        enemyCount: enemies ? enemies.length : 0,
+        projectileCount: projectiles ? projectiles.length : 0,
+        camY, editMode
+      };
+    },
+    getPlayer() { return player; },
+    getEnemies() { return enemies; },
+    getWands() { return wands; },
+    getInv() { return inv; },
+    getMat: g,
+    setMat: s,
+    getCells() { return cells; },
+    lightAt(x, y) { return light ? light[(y | 0) * VW + (x | 0)] : 0; },
+    setKey(k, v) { keys[k] = v; },
+    setPointer(x, y, down) { pointer.x = x; pointer.y = y; pointer.down = !!down; pointer.active = true; },
+    cast: tryCast,
+    kick,
+    spawnEnemy,
+    hurt, die,
+    explode,
+    updateMaterials,
+    choosePerk,
+    offerPerks,
+    biomeAt, inHoly,
+    simStamp() { return stamp; }
+  };
+  global.EMBERWELL = API;
+
+  if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+    else boot();
+  }
+  function boot() {
+    bind();
+    if (global.__EW_NO_AUTOSTART) return;
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(loop);
+  }
+})(typeof window !== 'undefined' ? window : globalThis);

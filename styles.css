@@ -1,0 +1,232 @@
+:root {
+  --bg: #07080c;
+  --ink: #f3edd9;
+  --muted: #8b93a8;
+  --panel: #0c1018ee;
+  --line: #3a4158;
+  --gold: #e8c45a;
+  --gold-dim: #8a6a22;
+  --accent: #7ad4ff;
+  --hp: #d44d55;
+  --mana: #3d9de0;
+  --hover: #c9b45a;
+  --danger: #ff6a3d;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; width: 100%; height: 100%; overflow: hidden;
+  background: var(--bg); color: var(--ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+body { display: grid; place-items: center; touch-action: none; }
+#app {
+  position: relative;
+  width: min(100vw, 1280px);
+  height: min(100vh, 720px);
+  display: grid;
+  place-items: center;
+  background: #05060a;
+  box-shadow: 0 0 0 1px #2a3146, 0 24px 80px #000;
+}
+canvas {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  width: 100%; height: 100%;
+  background: #05060b;
+  cursor: crosshair;
+  display: block;
+}
+#hud {
+  position: absolute; inset: 0; pointer-events: none;
+  font-size: 11px; text-shadow: 1px 1px 0 #000;
+}
+#hud.hide { display: none; }
+#topbar {
+  position: absolute; left: 10px; right: 10px; top: 8px;
+  display: flex; justify-content: space-between; gap: 8px; align-items: flex-start;
+}
+.cluster { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.meter {
+  width: 108px; height: 8px; border: 1px solid #5c657e;
+  background: #12151e; box-shadow: inset 0 0 0 1px #07080c;
+}
+.meter i { display: block; height: 100%; width: 50%; }
+.hp i { background: linear-gradient(90deg, #9a2c36, var(--hp)); }
+.mana i { background: linear-gradient(90deg, #215f96, var(--mana)); }
+.hover i { background: linear-gradient(90deg, #7a6a28, var(--hover)); }
+.tag {
+  border: 1px solid #4a516b; padding: 2px 6px; background: #0e1220cc; color: #d5dbeb;
+  letter-spacing: 0.04em;
+}
+#depth { color: #c5cad8; }
+#gold { color: var(--gold); }
+#statuses { display: flex; gap: 4px; }
+.status {
+  font-size: 9px; padding: 1px 5px; border: 1px solid #5a3a3a;
+  background: #2a1515cc; color: #ffb3a0;
+}
+#wandHud {
+  position: absolute; left: 10px; bottom: 10px;
+  display: flex; gap: 5px; align-items: flex-end;
+}
+.wand-chip {
+  min-width: 86px; padding: 5px 7px;
+  border: 1px solid #3e465e; background: #0c1018cc; color: #aeb6c9; font-size: 10px;
+}
+.wand-chip.active {
+  border-color: var(--gold); color: #fff2b8;
+  box-shadow: 0 0 14px #c59d3433;
+}
+.wand-chip b { display: block; color: #fff; font-size: 11px; margin-bottom: 2px; }
+.slotdots { display: flex; gap: 2px; margin-top: 3px; }
+.slotdots s {
+  display: block; width: 9px; height: 9px; background: #3a4156; text-decoration: none;
+  border: 1px solid #1a1d28;
+}
+.slotdots s.on { background: #7ad8ff; }
+.slotdots s.mod { background: #d4a84a; }
+.slotdots s.trig { background: #c86bff; }
+.slotdots s.multi { background: #8dffb0; }
+#spellRow {
+  position: absolute; left: 10px; bottom: 68px;
+  display: flex; gap: 3px; align-items: center;
+}
+.sp {
+  width: 22px; height: 22px; border: 1px solid #4a5370; background: #1a2031;
+  color: #e7ebf2; font-size: 8px; display: grid; place-items: center;
+  text-shadow: none; letter-spacing: 0;
+}
+.sp.cur { outline: 1px solid var(--gold); }
+#hint {
+  position: absolute; right: 10px; bottom: 10px;
+  color: #c5cad8; text-align: right; line-height: 1.55; opacity: 0.88; font-size: 10px;
+}
+.kbd {
+  border: 1px solid #616984; background: #151a2a; padding: 0 4px; color: #fff; font-size: 10px;
+}
+#matTag {
+  position: absolute; left: 50%; top: 36px; transform: translateX(-50%);
+  color: #dfe6f4; font-size: 10px; text-shadow: 1px 1px 0 #000;
+  pointer-events: none; opacity: 0.85;
+}
+#toast {
+  position: absolute; left: 50%; top: 22%; transform: translateX(-50%);
+  padding: 7px 14px; border: 1px solid #c8ad58; background: #151828e8;
+  color: #fff0a9; opacity: 0; transition: opacity 0.18s; pointer-events: none;
+  font-size: 12px; letter-spacing: 0.04em;
+}
+.overlay {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  background: #05060bd9; z-index: 4;
+}
+.overlay.hide { display: none; }
+.card {
+  width: min(92%, 640px); padding: 28px 30px;
+  border: 1px solid #59617d;
+  background: linear-gradient(160deg, #15192aee, #0a0c15ee);
+  box-shadow: 0 16px 80px #000;
+}
+.card h1 {
+  margin: 0 0 6px; letter-spacing: 0.18em;
+  font-size: clamp(22px, 4.4vw, 44px); color: #f7d974;
+}
+.card h2 { margin: 0 0 16px; color: #a6dfff; font-size: 13px; font-weight: 400; letter-spacing: 0.12em; }
+.card p { color: #c6cbd7; line-height: 1.65; font-size: 13px; }
+.card small { color: #8e95a8; }
+.primary {
+  border: 1px solid #ddbb50; background: #8f6b1d; color: #fff3b5;
+  padding: 11px 20px; font: inherit; cursor: pointer; letter-spacing: 0.08em;
+}
+.primary:hover { background: #b58a27; }
+.ghost {
+  border: 1px solid #4a5370; background: #151a28; color: #d5dbeb;
+  padding: 11px 16px; font: inherit; cursor: pointer;
+}
+.row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+#wandPanel, #perkPanel {
+  position: absolute; z-index: 5; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(94%, 760px); max-height: 90%; overflow: auto;
+  border: 1px solid #68718e; background: #0a0d18f5;
+  box-shadow: 0 20px 80px #000; padding: 18px;
+  pointer-events: auto;
+}
+.hide { display: none !important; }
+.panel-title {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px; color: #f3d671; gap: 10px;
+}
+.panel-title span { color: #96a0b7; font-size: 11px; }
+.wand-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.wand-card { border: 1px solid #394158; padding: 10px; background: #111625; }
+.wand-card.active { border-color: #d9b84e; }
+.wand-card h3 { margin: 0 0 6px; font-size: 12px; color: #f5e7a1; }
+.stats {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 3px;
+  color: #99a5bf; font-size: 10px; margin-bottom: 8px;
+}
+.spell-row { display: flex; gap: 4px; flex-wrap: wrap; min-height: 28px; }
+.spell-btn {
+  min-width: 52px; border: 1px solid #4a5370; background: #1a2031;
+  color: #e7ebf2; padding: 5px 6px; font: inherit; font-size: 10px; cursor: pointer;
+}
+.spell-btn.selected { outline: 1px solid #f4d266; background: #3c3519; }
+.spell-btn.empty { opacity: 0.35; border-style: dashed; }
+.inv-title { color: #a6dfff; font-size: 11px; margin: 12px 0 6px; letter-spacing: 0.08em; }
+.perk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.perk {
+  border: 1px solid #4e5670; background: #121829; padding: 14px; cursor: pointer;
+  color: #e4e8f4; min-height: 132px; text-align: left; font: inherit;
+}
+.perk:hover { border-color: #f4cf60; }
+.perk b { display: block; color: #f5d36c; margin-bottom: 8px; font-size: 13px; }
+.perk small { color: #acb4ca; line-height: 1.45; }
+#cause {
+  color: #ffb4a2; font-size: 16px; letter-spacing: 0.08em; margin: 8px 0 12px;
+}
+.touch { display: none; position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+.touch button, .touch .stick {
+  pointer-events: auto; touch-action: none;
+  border: 1px solid #77809c; background: #111528b8; color: #eef0f6;
+}
+.touch .stick {
+  position: absolute; left: 18px; bottom: 18px;
+  width: 110px; height: 110px; border-radius: 50%;
+}
+.touch .knob {
+  position: absolute; width: 44px; height: 44px; border-radius: 50%;
+  background: #dfe6f488; left: 33px; top: 33px; pointer-events: none;
+}
+.touch .jump {
+  position: absolute; right: 108px; bottom: 22px;
+  width: 58px; height: 58px; border-radius: 12px; font: inherit; font-size: 20px;
+}
+.touch .fire {
+  position: absolute; right: 18px; bottom: 18px;
+  width: 78px; height: 78px; border-radius: 50%;
+  border-color: #caa34e; color: #ffe49a; font: inherit; font-size: 22px;
+}
+.touch .wand {
+  position: absolute; right: 22px; bottom: 108px;
+  width: 54px; height: 38px; font: inherit; font-size: 12px; border-radius: 10px;
+}
+.touch .kick {
+  position: absolute; right: 80px; bottom: 108px;
+  width: 46px; height: 38px; font: inherit; font-size: 12px; border-radius: 10px;
+}
+.touch .edit {
+  position: absolute; right: 22px; bottom: 154px;
+  width: 54px; height: 32px; font: inherit; font-size: 11px; border-radius: 10px;
+}
+@media (pointer: coarse), (max-width: 720px) {
+  #hint { display: none; }
+  .touch { display: block; }
+  #app { width: 100vw; height: 100vh; }
+  .card { padding: 22px; }
+  .perk-grid { grid-template-columns: 1fr; }
+  .wand-grid { grid-template-columns: 1fr; }
+}
+#fps {
+  position: absolute; right: 10px; top: 8px; color: #6e7690; font-size: 10px;
+  pointer-events: none;
+}
